@@ -30,3 +30,5 @@ $ yarn run test:e2e
 
 # test coverage
 $ yarn run test:cov
+
+Connect database: mysql --host=103.47.192.67 --user=rm_devstream_usr --password=*Tc7CED6tnQe4urG
