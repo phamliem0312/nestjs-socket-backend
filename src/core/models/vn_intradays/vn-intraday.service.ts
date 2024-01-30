@@ -9,4 +9,8 @@ export class VnIntradayService {
   async findAll(): Promise<VnIntradayEntity[]> {
     return await this.vnIntradayRepository.findAll();
   }
+
+  async findByCode(code: string): Promise<VnIntradayEntity[]> {
+    return await this.vnIntradayRepository.find({ code });
+  }
 }

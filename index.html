@@ -84,10 +84,8 @@
     });
 
     socket.on('connected', function (msg) {
-      console.log(123123);
       socket.emit('message', {
-        room: '123123',
-        username: socket.id
+        code: 'I123',
       });
     });
 

@@ -3,4 +3,5 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class VnIntradayRepository extends ModelRepository {
+  entityName: string = 'vn_intraday';
 }

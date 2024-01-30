@@ -6,7 +6,7 @@ const config: { [key: string]: Knex.Config } = {
     connection: {
       database: 'ckvn',
       user: 'root',
-      password: '031298',
+      password: '',
       host: '127.0.0.1',
     },
     pool: {
