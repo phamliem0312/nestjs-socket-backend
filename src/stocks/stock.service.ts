@@ -1,14 +1,18 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
+import FClientConfig from './stock.config';
 
 @Injectable()
 export class StockService {
-  private axiosIntance;
-  private readonly url = 'https://mindthegapstudio.com/';
-  private readonly token = `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im9wMUBub2liYWljb25uZWN0LmNvbSIsImZ1bGxuYW1lIjoiSHV5LUFuaCBOZ3V5ZW4iLCJpYXQiOjE3MDQxODU2MTN9.7P_RIqdVgcEdlQ22Gk80elkDblyJoqB7GH7uq0RuDXU`;
+  private axiosIntance: AxiosInstance;
+  private baseUrl: string;
+  private token: string;
   constructor() {
+    this.baseUrl = FClientConfig.baseUrl;
+    this.token = FClientConfig.token;
+
     this.axiosIntance = axios.create({
-      baseURL: this.url,
+      baseURL: this.baseUrl,
       timeout: 60000,
     });
   }
