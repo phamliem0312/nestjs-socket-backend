@@ -13,13 +13,13 @@ export class StockService {
     });
   }
 
-  async getHistory() {
+  async getHistory(id: string) {
     const options = {
       params: {
         token: this.token,
         email: 'op1@noibaiconnect.com',
         action: 'getFclientData',
-        ids: '1',
+        ids: id,
       },
     };
 

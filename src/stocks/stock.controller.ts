@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { StockService } from './stock.service';
 
@@ -8,7 +8,11 @@ export class StockController {
 
   @Get('/history/:id')
   async getHistory(@Req() req: Request): Promise<any> {
-    console.log(req);
-    return await this.stockService.getHistory();
+    const id = req.params.id;
+
+    if (!id) {
+      throw new BadRequestException('Missing parameter id');
+    }
+    return await this.stockService.getHistory(id);
   }
 }

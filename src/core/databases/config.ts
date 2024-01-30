@@ -1,15 +1,22 @@
-import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
+import { Knex } from 'knex';
 
-const config: MysqlConnectionOptions = {
-  type: 'mysql',
-  database: 'ckvn',
-  username: 'root',
-  password: '',
-  host: 'localhost',
-  entities: ['dist/models/**/*.entity{.ts,.js}'],
-  synchronize: false,
-  dropSchema: false,
-  migrations: ['dist/database/migrations/*.js'],
+const config: { [key: string]: Knex.Config } = {
+  development: {
+    client: 'mysql',
+    connection: {
+      database: 'ckvn',
+      user: 'root',
+      password: '031298',
+      host: '127.0.0.1',
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: '../db/knex_migrations',
+    },
+  },
 };
 
 export default config;

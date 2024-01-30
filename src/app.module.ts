@@ -4,13 +4,19 @@ import { AppService } from './app.service';
 import { StockModule } from './stocks/stock.module';
 import { VnIntradayModule } from './core/models/vn_intradays/vn-intraday.module';
 import { EventModule } from './events/event.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigModule } from '@nestjs/config';
+import { KnexModule } from 'nest-knexjs';
 import config from './core/databases/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(config),
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
+    KnexModule.forRoot({
+      config: config[process.env.NODE_ENV ?? 'development'],
+    }),
     StockModule,
     VnIntradayModule,
     EventModule,

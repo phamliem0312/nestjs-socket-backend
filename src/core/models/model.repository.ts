@@ -1,35 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { plainToClass } from 'class-transformer';
-import { ModelEntity } from './model.serializer';
-import { DeepPartial, Repository } from 'typeorm';
+import { Knex } from 'knex';
+import { InjectModel } from 'nest-knexjs';
 
 @Injectable()
-export class ModelRepository<T, K extends ModelEntity> extends Repository<T> {
-  async getAllEntity(
-    relations: string[] = [],
-    throwsException = false,
-  ): Promise<K[] | null> {
-    return await this.find({ relations }).then((entity) => {
-      if (!entity && throwsException) {
-        return Promise.reject(new NotFoundException('Model not found'));
-      }
+export class ModelRepository {
+  entityName: string = '';
+  constructor(@InjectModel() private readonly knex: Knex) {}
 
-      return Promise.resolve(entity ? this.transformMany(entity) : null);
-    });
-  }
-  async deleteEntityById(id: number | string): Promise<boolean> {
-    return await this.delete(id)
-      .then(() => {
-        return true;
-      })
-      .catch((error) => Promise.reject(error));
+  async findAll(): Promise<any> {
+    return await this.knex.table(this.entityName);
   }
 
-  transform(model: T, transformOptions = {}): K {
-    return plainToClass(ModelEntity, model, transformOptions) as K;
-  }
-
-  transformMany(model: T[], transformOptions = {}): K[] {
-    return model.map((model) => this.transform(model, transformOptions));
+  async findOne(id: string) {
+    if (!id) {
+      throw new NotFoundException(`${this.entityName} ${id} does not exist`);
+    }
+    return await this.knex.table(this.entityName).where('id', id);
   }
 }
