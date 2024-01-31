@@ -2,11 +2,11 @@ import { Knex } from 'knex';
 
 const config: { [key: string]: Knex.Config } = {
   development: {
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
       database: 'ckvn',
       user: 'root',
-      password: '',
+      password: '031298',
       host: '127.0.0.1',
     },
     pool: {

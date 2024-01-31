@@ -8,10 +8,10 @@ export class ModelRepository {
   constructor(@InjectModel() private readonly knex: Knex) {}
 
   async findAll(): Promise<any> {
-    return await this.knex.table(this.entityName);
+    return await this.knex(this.entityName).select();
   }
 
-  async findOne(id: string): Promise<any> {
+  async findById(id: string): Promise<any> {
     if (!id) {
       throw new NotFoundException(`${this.entityName} ${id} does not exist`);
     }
@@ -19,6 +19,6 @@ export class ModelRepository {
   }
 
   async find(whereClause: object): Promise<any> {
-    return await this.knex.table(this.entityName).where(whereClause);
+    return await this.knex(this.entityName).select().where(whereClause);
   }
 }
