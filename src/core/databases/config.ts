@@ -5,9 +5,9 @@ const config: { [key: string]: Knex.Config } = {
     client: 'mysql2',
     connection: {
       database: 'ckvn',
-      user: 'root',
-      password: '031298',
-      host: '127.0.0.1',
+      user: 'fclientuser',
+      password: '123456a@',
+      host: '103.179.189.71',
     },
     pool: {
       min: 2,
