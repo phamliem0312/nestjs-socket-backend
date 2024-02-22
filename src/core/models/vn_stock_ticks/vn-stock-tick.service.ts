@@ -4,7 +4,7 @@ import { Knex } from 'knex';
 import { InjectModel } from 'nest-knexjs';
 
 @Injectable()
-export class VnIntradayService {
+export class VnStockTickService {
   constructor(
     private readonly vnStockTickRepository: VnStockTickRepository,
     @InjectModel() private readonly knex: Knex,

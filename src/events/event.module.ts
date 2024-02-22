@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { EventGateway } from './event.gateway';
 import { CacheModule } from '@nestjs/cache-manager';
-import { VnIntradayModule } from 'src/core/models/vn_intradays/vn-intraday.module';
+import { VnStockTickModule } from 'src/core/models/vn_stock_ticks/vn-stock-tick.module';
 
 @Module({
-  imports: [VnIntradayModule, CacheModule.register()],
+  imports: [VnStockTickModule, CacheModule.register()],
   providers: [EventGateway],
 })
 export class EventModule {}
