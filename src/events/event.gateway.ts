@@ -31,46 +31,37 @@ export class EventGateway {
   }
 
   @SubscribeMessage('subscribe')
-  handleSubscribe(client: Socket, eventData: { channel: string }) {
-    const channel = eventData.channel.split('~');
+  async handleSubscribe(client: Socket, eventData: { subscribeId: string }) {
+    const subscribe = eventData.subscribeId.split('_');
+    const symbolCode = subscribe[0] ?? null;
+    const resolution = subscribe[2] ?? null;
+    const room = `${symbolCode}-${resolution}`;
+
+    const cachedData = await this.cacheManager.get(room);
+
+    if (cachedData) {
+      client.emit('message', cachedData);
+    }
+
     const intervalTimer = setInterval(async () => {
-      if (!client.connected) {
+      if (client.disconnected) {
         clearInterval(intervalTimer);
       }
-
-      const cachedData = await this.cacheManager.get(eventData.channel);
+      const cachedData = await this.cacheManager.get(room);
 
       if (cachedData) {
-        client.emit('message-' + eventData.channel, {
-          data: cachedData,
-        });
+        client.emit('message', cachedData);
         return;
       }
-      const data = await this.vnStockTickService.findByCode(eventData.channel);
-      this.cacheManager.set(eventData.channel, data);
+      const data = await this.vnStockTickService.getSocketData(
+        symbolCode,
+        resolution,
+      );
+      this.cacheManager.set(room, data);
 
-      client.emit('message', {
-        data,
-      });
+      client.emit('message', data);
     }, this.intervalTime);
 
     intervalTimer;
-  }
-
-  async firstHandleEvent(client: Socket, eventData) {
-    const cachedData = await this.cacheManager.get(eventData.code);
-
-    if (cachedData) {
-      client.emit('message-' + eventData.code, {
-        data: cachedData,
-      });
-      return;
-    }
-    const data = await this.vnStockTickService.findByCode(eventData.code);
-    this.cacheManager.set(eventData.code, data, 5);
-
-    client.emit('message-' + eventData.code, {
-      data,
-    });
   }
 }

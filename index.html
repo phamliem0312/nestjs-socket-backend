@@ -69,24 +69,10 @@
   <script src="./public/socket.io.js"></script>
 
   <script>
-    var socket = io('http://localhost:3006', { transports : ['websocket']});
-
-    var messages = document.getElementById('messages');
-    var form = document.getElementById('form');
-    var input = document.getElementById('input');
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('message', input.value);
-        input.value = '';
-      }
-    });
+    var socket = io('http://localhost:3006', { transports: ['websocket'] });
 
     socket.on('connected', function (msg) {
-      socket.emit('message', {
-        code: 'I123',
-      });
+      socket.emit('subscribe', { subscribeId: 'HPG_#_1D' });
     });
 
     socket.on('message', function (msg) {
