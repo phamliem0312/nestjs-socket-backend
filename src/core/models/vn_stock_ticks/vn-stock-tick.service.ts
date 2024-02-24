@@ -7,42 +7,93 @@ export class VnStockTickService {
   constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const tickList = await this.getTickList(symbolCode, resolution);
-    if (resolution == '1') {
-      const isCurrent =
-        moment().diff(tickList[0].time, 'minutes') == 0 ? true : false;
+    const tickData = await this.getTickData(symbolCode, resolution);
+    if (['1', '10', '15', '30'].includes(resolution)) {
+      const resolutionNumber = parseInt(resolution);
+      const diff = moment().diff(tickData.time, 'minutes');
+      const insidePeriod = diff < resolutionNumber && diff >= 0 ? true : false;
 
-      if (isCurrent) {
+      if (insidePeriod) {
         return {
-          symbol: tickList[0].symbol,
-          open: tickList[0].open,
-          high: tickList[0].high,
-          low: tickList[0].low,
-          volume: tickList[0].volume,
-          time: tickList[0].time,
+          symbol: tickData.symbol,
+          open: tickData.open,
+          high: tickData.high,
+          low: tickData.low,
+          close: tickData.close,
+          volume: tickData.volume,
+          time: tickData.time,
         };
       }
 
       return {
-        symbol: tickList[0].symbol,
-        open: tickList[0].open,
+        symbol: tickData.symbol,
+        open: tickData.open,
         high: 0,
         low: 0,
+        close: tickData.close,
         volume: 0,
-        time: tickList[0].time,
+        time: moment
+          .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
+          .format('YYYY-MM-DD hh:mm:ss'),
       };
     }
 
-    return tickList;
+    if (resolution == '1D') {
+      const resolutionNumber = parseInt(resolution);
+      const diff = moment().diff(tickData.time, 'days');
+      if (diff == 0) {
+        return {
+          symbol: tickData.symbol,
+          open: tickData.open,
+          high: tickData.high,
+          low: tickData.low,
+          close: tickData.close,
+          volume: tickData.volume,
+          time: tickData.time,
+        };
+      }
+
+      return {
+        symbol: 0,
+        open: 0,
+        high: 0,
+        low: 0,
+        close: 0,
+        volume: 0,
+        time: moment
+          .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
+          .format('YYYY-MM-DD'),
+      };
+    }
+
+    if (['1W', '1M'].includes(resolution)) {
+      return {
+        symbol: tickData.symbol,
+        open: tickData.open,
+        high: tickData.high,
+        low: tickData.low,
+        close: tickData.close,
+        volume: tickData.volume,
+        time: tickData.time,
+      };
+    }
+
+    return {};
   }
 
-  async getTickList(symbolCode: string, resolution: string): Promise<any> {
+  async getTickData(symbolCode: string, resolution: string): Promise<any> {
     if (['1', '10', '15', '30'].includes(resolution)) {
-      return await this.vnStockTickRepository.getTicksByMinute(symbolCode);
+      return await this.vnStockTickRepository.getTickByMinute(
+        symbolCode,
+        resolution,
+      );
     }
 
     if (['1D', '1W', '1M'].includes(resolution)) {
-      return await this.vnStockTickRepository.getTicksByDay(symbolCode);
+      return await this.vnStockTickRepository.getTicksByDay(
+        symbolCode,
+        resolution,
+      );
     }
   }
 }
