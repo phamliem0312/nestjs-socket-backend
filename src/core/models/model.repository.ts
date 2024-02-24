@@ -5,7 +5,7 @@ import { InjectModel } from 'nest-knexjs';
 @Injectable()
 export class ModelRepository {
   entityName: string = '';
-  constructor(@InjectModel() private readonly knex: Knex) {}
+  constructor(@InjectModel() protected readonly knex: Knex) {}
 
   async findAll(): Promise<any> {
     return await this.knex(this.entityName).select();
