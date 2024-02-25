@@ -37,7 +37,8 @@ export class VnStockTickRepository extends ModelRepository {
     };
     const result = await this.knex.raw(`
       select 
-        ${selectDateSqlMap[resolution]} as time,
+        ${selectDateSqlMap[resolution]} as week,
+		    date_format(now(), '%Y-%m-%d') as time,
         max(OPEN) as open,
         max(HIGH) as high,
         min(low) as low,
