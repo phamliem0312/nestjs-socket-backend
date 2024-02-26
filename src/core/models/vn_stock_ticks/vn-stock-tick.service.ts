@@ -11,15 +11,19 @@ export class VnStockTickService {
     if (['1', '10', '15', '30'].includes(resolution)) {
       const resolutionNumber = parseInt(resolution);
       const diff = moment().diff(tickData.time, 'minutes');
-      const insidePeriod = diff < resolutionNumber && diff >= 0 ? true : false;
+      let insidePeriod = false;
+
+      if (diff < resolutionNumber && diff >= 0) {
+        insidePeriod = true;
+      }
 
       if (insidePeriod) {
         return {
           symbol: tickData.symbol,
-          open: tickData.open,
+          open: Math.round(tickData.open),
           high: tickData.high,
           low: tickData.low,
-          close: tickData.close,
+          close: Math.round(tickData.close),
           volume: tickData.volume,
           time: tickData.time,
         };
@@ -27,10 +31,10 @@ export class VnStockTickService {
 
       return {
         symbol: tickData.symbol,
-        open: tickData.open,
+        open: Math.round(tickData.open),
         high: 0,
         low: 0,
-        close: tickData.close,
+        close: Math.round(tickData.close),
         volume: 0,
         time: moment
           .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))

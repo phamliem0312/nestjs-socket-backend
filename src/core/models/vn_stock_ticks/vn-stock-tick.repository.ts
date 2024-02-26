@@ -12,10 +12,10 @@ export class VnStockTickRepository extends ModelRepository {
     const result = await this.knex.raw(`
       select 
         from_unixtime(floor(unix_timestamp(DATE)/(${intervalTime}*60))*(${intervalTime}*60)) as time,
-        max(OPEN) as open,
+        avg(OPEN) as open,
         max(HIGH) as high,
         min(LOW) as low,
-        max(CLOSE) as close,
+        avg(CLOSE) as close,
         sum(VOLUME) as volume,
         SYMBOL as symbol,
         count(*) as total
