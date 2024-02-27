@@ -21,7 +21,7 @@ export class VnStockTickService {
 
       if (insidePeriod) {
         return {
-          symbol: tickData.symbol,
+          symbol: symbolCode,
           open: Math.round(tickData.open),
           high: tickData.high,
           low: tickData.low,
@@ -32,7 +32,7 @@ export class VnStockTickService {
       }
 
       return {
-        symbol: tickData.symbol,
+        symbol: symbolCode,
         open: Math.round(tickData.open),
         high: 0,
         low: 0,
@@ -49,7 +49,7 @@ export class VnStockTickService {
       const diff = moment().diff(tickData.time, 'days');
       if (diff == 0) {
         return {
-          symbol: tickData.symbol,
+          symbol: symbolCode,
           open: tickData.open,
           high: tickData.high,
           low: tickData.low,
@@ -60,7 +60,7 @@ export class VnStockTickService {
       }
 
       return {
-        symbol: 0,
+        symbol: symbolCode,
         open: 0,
         high: 0,
         low: 0,
@@ -74,7 +74,7 @@ export class VnStockTickService {
 
     if (['1W', '1M'].includes(resolution)) {
       return {
-        symbol: tickData.symbol,
+        symbol: symbolCode,
         open: tickData.open,
         high: tickData.high,
         low: tickData.low,
@@ -88,19 +88,30 @@ export class VnStockTickService {
   }
 
   async getTickData(symbolCode: string, resolution: string): Promise<any> {
+    let data;
     if (this.resolutionMinuteMap.includes(resolution)) {
-      return await this.vnStockTickRepository.getTickByMinute(
+      data = await this.vnStockTickRepository.getTickByMinute(
         symbolCode,
         resolution,
       );
     }
 
     if (this.resolutionDayMap.includes(resolution)) {
-      return await this.vnStockTickRepository.getTicksByDay(
+      data = await this.vnStockTickRepository.getTickByDay(
         symbolCode,
         resolution,
       );
     }
+
+    const { open, close } = await this.vnStockTickRepository.getOpenCloseByDate(
+      symbolCode,
+      data.minDate,
+      data.maxDate,
+    );
+
+    data.open = open;
+    data.close = close;
+    return data;
   }
 
   async getTicksByResolution(
@@ -110,7 +121,7 @@ export class VnStockTickService {
     let ticks = [];
     let from: string;
     let to: string;
-    let data: any[];
+    let data;
 
     if (this.resolutionMinuteMap.includes(resolution)) {
       const interval = parseInt(resolution);
@@ -120,9 +131,10 @@ export class VnStockTickService {
           Math.floor(currentMinute / interval) * interval +
           ':00',
       );
-
-      from = moment().format('YYYY-MM-DD 09:00:00');
-      to = moment().format('YYYY-MM-DD 15:00:00');
+      from = moment(currentTime)
+        .subtract(interval * this.recordLimit, 'minutes')
+        .format('YYYY-MM-DD H:mm:ss');
+      to = moment().format('YYYY-MM-DD H:mm:ss');
 
       ticks = await this.vnStockTickRepository.getTicksByMinute(
         symbolCode,
@@ -137,22 +149,26 @@ export class VnStockTickService {
   }
 
   getDataFromTicks(ticks: any[], currentTime: string, interval: number) {
-    const data = [];
-    const tickMap = this.getTickDataMap(ticks);
-
-    for (let i = 1; i <= this.recordLimit; i++) {
-      const duration = moment(interval * i, 'minutes');
-      const time = moment(currentTime).subtract(duration).format('YYYY-MM-DDTH:mm:ss');
-
-      if (tickMap[time]) {
-      }
-    }
+    return this.getTickDataMap(ticks);
   }
 
   getTickDataMap(ticks: any[]) {
     const tickMap = {};
+    let lastTick = {};
+    let firstTick = {
+      time: 0,
+      open: 0,
+      close: 0,
+      high: 0,
+      low: 0,
+      volume: 0,
+    };
 
-    ticks.forEach((tick) => {
+    ticks.forEach((tick, i) => {
+      if (i == 0) {
+        firstTick = tick;
+      }
+      lastTick = tick;
       if (tickMap[tick.time]) {
         tickMap[tick.time] = {
           open: tick.open,
@@ -167,10 +183,11 @@ export class VnStockTickService {
           tickMap[tick.time].high = tick.high;
         if (tickMap[tick.time].low > tick.low)
           tickMap[tick.time].low = tick.low;
-        tickMap[tick.time].volume += tick.close;
+        tickMap[tick.time].volume += tick.volume;
       }
     });
 
-    return tickMap;
+    const tickData = Object.values(tickMap);
+    return { tickData, lastTick, firstTick };
   }
 }

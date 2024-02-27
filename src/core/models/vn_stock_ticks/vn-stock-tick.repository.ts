@@ -12,24 +12,22 @@ export class VnStockTickRepository extends ModelRepository {
     const result = await this.knex.raw(`
       select 
         from_unixtime(floor(unix_timestamp(DATE)/(${intervalTime}*60))*(${intervalTime}*60)) as time,
-        avg(OPEN) as open,
+        min(date_format(DATE, '%Y-%m-%d %H:%i:%s')) as minDate,
+        max(date_format(DATE, '%Y-%m-%d %H:%i:%s')) as maxDate,
         max(HIGH) as high,
         min(LOW) as low,
-        avg(CLOSE) as close,
-        sum(VOLUME) as volume,
-        SYMBOL as symbol,
-        count(*) as total
+        sum(VOLUME) as volume
       from ${this.entityName}
       where SYMBOL="${symbolCode}"
       group by 1
       order by 1 desc
-      limit 1 offset 1
+      limit 1 offset 0
       `);
 
     return result[0][0] ? result[0][0] : {};
   }
 
-  async getTicksByDay(symbolCode: string, resolution: string): Promise<any> {
+  async getTickByDay(symbolCode: string, resolution: string): Promise<any> {
     const selectDateSqlMap = {
       '1D': "date_format(DATE, '%Y-%m-%d')",
       '1W': "concat(week(DATE), '/', year(DATE))",
@@ -38,18 +36,16 @@ export class VnStockTickRepository extends ModelRepository {
     const result = await this.knex.raw(`
       select 
         ${selectDateSqlMap[resolution]} as week,
-		    date_format(now(), '%Y-%m-%d') as time,
-        max(OPEN) as open,
+        min(date_format(DATE, '%Y-%m-%d %H:%i:%s')) as minDate,
+        max(date_format(DATE, '%Y-%m-%d %H:%i:%s')) as maxDate,
         max(HIGH) as high,
-        min(low) as low,
-        min(close) as close,
-        sum(VOLUME) as volume,
-        SYMBOL as symbol,
-        count(*) as total
+        min(LOW) as low,
+        sum(VOLUME) as volume
       from ${this.entityName}
       where SYMBOL="${symbolCode}"
       group by 1
       order by 1 desc
+      limit 1 offset 0
       `);
 
     return result[0][0] ? result[0][0] : {};
@@ -78,4 +74,34 @@ export class VnStockTickRepository extends ModelRepository {
     return result[0][0] ? result[0][0] : {};
   }
 
+  async getOpenCloseByDate(
+    symbolCode: string,
+    minDate: string,
+    maxDate: string,
+  ): Promise<any> {
+    const result1 = await this.knex.raw(`
+      select 
+        CLOSE as close
+      from ${this.entityName}
+      where SYMBOL="${symbolCode}"
+        and DATE="${maxDate}"
+      order by DATE desc
+      limit 1 offset 0
+      `);
+
+    const result2 = await this.knex.raw(`
+      select 
+        OPEN as open
+      from ${this.entityName}
+      where SYMBOL="${symbolCode}"
+        and DATE="${minDate}"
+      order by DATE asc
+      limit 1 offset 0
+      `);
+
+    return {
+      open: result2[0][0].open,
+      close: result1[0][0].close,
+    };
+  }
 }

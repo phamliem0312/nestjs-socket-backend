@@ -72,7 +72,7 @@
     var socket = io('http://localhost:3006', { transports: ['websocket'] });
 
     socket.on('connected', function (msg) {
-      socket.emit('subscribe', { subscribeId: 'HPG_#_1D' });
+      socket.emit('subscribe', { subscribeId: 'HPG_#_1' });
     });
 
     socket.on('message', function (msg) {
