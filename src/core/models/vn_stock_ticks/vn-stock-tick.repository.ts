@@ -54,4 +54,28 @@ export class VnStockTickRepository extends ModelRepository {
 
     return result[0][0] ? result[0][0] : {};
   }
+
+  async getTicksByMinute(
+    symbolCode: string,
+    from: string,
+    to: string,
+  ): Promise<any> {
+    const result = await this.knex.raw(`
+      select 
+        date_format(from_unixtime(floor(unix_timestamp(DATE)/(1*60))*(1*60)), '%Y-%m-%dT%H-%i-00') as time,
+        OPEN as open,
+        CLOSE as close,
+        HIGH as high,
+        LOW as low,
+        VOLUME as volume
+      from ${this.entityName}
+      where SYMBOL="${symbolCode}"
+        and DATE >= ${from}
+        and DATE < ${to}
+      order by DATE asc
+      `);
+
+    return result[0][0] ? result[0][0] : {};
+  }
+
 }
