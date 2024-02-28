@@ -3,14 +3,19 @@ import { VnStockTickRepository } from './vn-stock-tick.repository';
 import * as moment from 'moment';
 @Injectable()
 export class VnStockTickService {
-  private resolutionMinuteMap: string[] = ['1', '5', '10', '15', '30'];
-  private resolutionDayMap: string[] = ['1D', '1W', '1M', '6M'];
+  private resolutionDayUnit: string[] = ['D', 'W', 'M'];
   private recordLimit: number = 200;
   constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
+    const isNotMinute =
+      resolution.includes('D') ||
+      resolution.includes('W') ||
+      resolution.includes('M')
+        ? true
+        : false;
     const tickData = await this.getTickData(symbolCode, resolution);
-    if (this.resolutionMinuteMap.includes(resolution)) {
+    if (!isNotMinute) {
       const resolutionNumber = parseInt(resolution);
       const diff = moment().diff(tickData.time, 'minutes');
       let insidePeriod = false;
@@ -89,14 +94,22 @@ export class VnStockTickService {
 
   async getTickData(symbolCode: string, resolution: string): Promise<any> {
     let data;
-    if (this.resolutionMinuteMap.includes(resolution)) {
+
+    const isNotMinute =
+      resolution.includes('D') ||
+      resolution.includes('W') ||
+      resolution.includes('M')
+        ? true
+        : false;
+
+    if (!isNotMinute) {
       data = await this.vnStockTickRepository.getTickByMinute(
         symbolCode,
         resolution,
       );
     }
 
-    if (this.resolutionDayMap.includes(resolution)) {
+    if (isNotMinute) {
       data = await this.vnStockTickRepository.getTickByDay(
         symbolCode,
         resolution,
@@ -118,76 +131,58 @@ export class VnStockTickService {
     symbolCode: string,
     resolution: string,
   ): Promise<any> {
-    let ticks = [];
-    let from: string;
-    let to: string;
-    let data;
+    let ticks: Array<any> = [];
+    let dataSelect;
 
-    if (this.resolutionMinuteMap.includes(resolution)) {
-      const interval = parseInt(resolution);
-      const currentMinute = moment().minutes();
-      const currentTime = moment().format(
-        'YYYY-MM-DD H:' +
-          Math.floor(currentMinute / interval) * interval +
-          ':00',
-      );
-      from = moment(currentTime)
-        .subtract(interval * this.recordLimit, 'minutes')
-        .format('YYYY-MM-DD H:mm:ss');
-      to = moment().format('YYYY-MM-DD H:mm:ss');
-
-      ticks = await this.vnStockTickRepository.getTicksByMinute(
-        symbolCode,
-        from,
-        to,
-      );
-
-      data = this.getDataFromTicks(ticks, currentTime, interval);
+    if (
+      !resolution.includes('D') &&
+      !resolution.includes('W') &&
+      !resolution.includes('M')
+    ) {
+      dataSelect = `from_unixtime(floor(unix_timestamp(DATE)/(${resolution}*60))*(${resolution}*60))`;
     }
 
-    return data;
-  }
+    if (resolution.includes('D')) {
+      dataSelect = `date_format(DATE, '%Y-%m-%d')`;
+    }
 
-  getDataFromTicks(ticks: any[], currentTime: string, interval: number) {
-    return this.getTickDataMap(ticks);
-  }
+    if (resolution.includes('W')) {
+      dataSelect = `concat(week(DATE), '-', year(DATE))`;
+    }
 
-  getTickDataMap(ticks: any[]) {
-    const tickMap = {};
-    let lastTick = {};
-    let firstTick = {
-      time: 0,
-      open: 0,
-      close: 0,
-      high: 0,
-      low: 0,
-      volume: 0,
-    };
+    if (resolution.includes('M')) {
+      const monthPeriod = resolution[0];
+      dataSelect = `concat(year(DATE), '-', (floor((month(DATE)-1)/${monthPeriod})*(${monthPeriod}) + 1), '-01')`;
+    }
 
-    ticks.forEach((tick, i) => {
-      if (i == 0) {
-        firstTick = tick;
-      }
-      lastTick = tick;
-      if (tickMap[tick.time]) {
-        tickMap[tick.time] = {
+    ticks = await this.vnStockTickRepository.getDataByResolution(
+      symbolCode,
+      dataSelect,
+    );
+
+    const result = {};
+
+    ticks.forEach((tick) => {
+      if (!result[tick.time]) {
+        result[tick.time] = {
+          time: tick.time,
           open: tick.open,
-          close: tick.close,
           high: tick.high,
           low: tick.low,
           volume: tick.volume,
+          close: tick.close,
         };
       } else {
-        tickMap[tick.time].close = tick.close;
-        if (tickMap[tick.time].high < tick.high)
-          tickMap[tick.time].high = tick.high;
-        if (tickMap[tick.time].low > tick.low)
-          tickMap[tick.time].low = tick.low;
-        tickMap[tick.time].volume += tick.volume;
+        result[tick.time].close = tick.close;
       }
     });
 
-    const tickData = Object.values(tickMap);
-    return { tickData, lastTick, firstTick };
+    const list = Object.values(result);
+    const total = list.length;
+
+    return {
+      total: total,
+      list: list,
+    };
   }
 }

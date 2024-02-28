@@ -51,27 +51,39 @@ export class VnStockTickRepository extends ModelRepository {
     return result[0][0] ? result[0][0] : {};
   }
 
-  async getTicksByMinute(
+  async getDataByResolution(
     symbolCode: string,
-    from: string,
-    to: string,
+    dateSelect: string,
   ): Promise<any> {
     const result = await this.knex.raw(`
-      select 
-        date_format(from_unixtime(floor(unix_timestamp(DATE)/(1*60))*(1*60)), '%Y-%m-%dT%H-%i-00') as time,
+      SELECT distinct
+        date_format(a.time, '%Y-%m-%d %H:%i:%s') as time,
+        date_format(DATE, '%Y-%m-%d %H:%i:%s') as date,
         OPEN as open,
         CLOSE as close,
-        HIGH as high,
-        LOW as low,
-        VOLUME as volume
-      from ${this.entityName}
-      where SYMBOL="${symbolCode}"
-        and DATE >= ${from}
-        and DATE < ${to}
-      order by DATE asc
+        a.volume as volume,
+        a.high as high,
+        a.low as low
+      from vnstock_ticks right join
+      (
+      SELECT
+          ${dateSelect} as time,
+          min(DATE) as min_date,
+          max(DATE) as max_date,
+          sum(VOLUME) as volume,
+          max(HIGH) as high,
+          min(low) as low
+      FROM ${this.entityName}
+      where SYMBOL = '${symbolCode}'
+      group by 1
+      order by 1 desc
+      limit 200 offset 0
+      ) a on a.min_date = date or a.max_date = date
+      where SYMBOL = '${symbolCode}'
+      order by time desc, date desc
       `);
 
-    return result[0][0] ? result[0][0] : {};
+    return result[0] ? result[0] : [];
   }
 
   async getOpenCloseByDate(
@@ -81,7 +93,7 @@ export class VnStockTickRepository extends ModelRepository {
   ): Promise<any> {
     const result1 = await this.knex.raw(`
       select 
-        CLOSE as close
+        OPEN as open
       from ${this.entityName}
       where SYMBOL="${symbolCode}"
         and DATE="${maxDate}"
@@ -91,7 +103,7 @@ export class VnStockTickRepository extends ModelRepository {
 
     const result2 = await this.knex.raw(`
       select 
-        OPEN as open
+        CLOSE as close
       from ${this.entityName}
       where SYMBOL="${symbolCode}"
         and DATE="${minDate}"
@@ -100,8 +112,8 @@ export class VnStockTickRepository extends ModelRepository {
       `);
 
     return {
-      open: result2[0][0].open,
-      close: result1[0][0].close,
+      open: result1[0][0].open ?? 0,
+      close: result2[0][0].close ?? 0,
     };
   }
 }
