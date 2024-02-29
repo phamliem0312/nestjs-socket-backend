@@ -44,6 +44,7 @@ export class EventGateway {
     }
 
     const intervalTimer = setInterval(async () => {
+      console.log(client.disconnected);
       if (client.disconnected) {
         clearInterval(intervalTimer);
       }

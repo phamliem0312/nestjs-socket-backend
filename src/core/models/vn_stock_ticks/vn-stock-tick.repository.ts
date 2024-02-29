@@ -54,6 +54,8 @@ export class VnStockTickRepository extends ModelRepository {
   async getDataByResolution(
     symbolCode: string,
     dateSelect: string,
+    limit: number = 1,
+    order: string = 'desc',
   ): Promise<any> {
     const result = await this.knex.raw(`
       SELECT distinct
@@ -76,11 +78,10 @@ export class VnStockTickRepository extends ModelRepository {
       FROM ${this.entityName}
       where SYMBOL = '${symbolCode}'
       group by 1
-      order by 1 desc
-      limit 200 offset 0
+      order by 1 ${order}
+      limit ${limit} offset 0
       ) a on a.min_date = date or a.max_date = date
       where SYMBOL = '${symbolCode}'
-      order by time desc, date desc
       `);
 
     return result[0] ? result[0] : [];

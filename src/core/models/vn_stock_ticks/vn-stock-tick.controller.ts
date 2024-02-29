@@ -11,6 +11,6 @@ export class VnStockTickController {
     const symbol = req.params.symbol;
     const resolution = req.query.resolution.toString();
 
-    return this.vnStockTickService.getTicksByResolution(symbol, resolution);
+    return this.vnStockTickService.getBarsByResolution(symbol, resolution);
   }
 }

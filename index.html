@@ -69,10 +69,12 @@
   <script src="./public/socket.io.js"></script>
 
   <script>
-    var socket = io('http://localhost:3006', { transports: ['websocket'] });
+    var socket = io('http://localhost:3006', {
+      transports: ['websocket'] 
+    });
 
     socket.on('connected', function (msg) {
-      socket.emit('subscribe', { subscribeId: 'HPG_#_1' });
+      socket.emit('subscribe', { subscribeId: 'HPG_#_1D' });
     });
 
     socket.on('message', function (msg) {

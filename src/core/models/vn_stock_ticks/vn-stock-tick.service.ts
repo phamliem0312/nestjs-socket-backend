@@ -5,19 +5,26 @@ import * as moment from 'moment';
 export class VnStockTickService {
   private resolutionDayUnit: string[] = ['D', 'W', 'M'];
   private recordLimit: number = 200;
-  constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
+  constructor(private readonly vnStockTickRepository: VnStockTickRepository) { }
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const isNotMinute =
+    const barData = await this.getBarByResolution(symbolCode, resolution);
+    let isNotMinute = true;
+
+    if (
       resolution.includes('D') ||
       resolution.includes('W') ||
       resolution.includes('M')
-        ? true
-        : false;
-    const tickData = await this.getTickData(symbolCode, resolution);
-    if (!isNotMinute) {
+    ) {
+      isNotMinute = false;
+    }
+
+    if (isNotMinute) {
       const resolutionNumber = parseInt(resolution);
-      const diff = moment().diff(tickData.time, 'minutes');
+      const time = moment
+        .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
+        .format('YYYY-MM-DD H:mm:ss');
+      const diff = moment().diff(barData.time, 'minutes');
       let insidePeriod = false;
 
       if (diff < resolutionNumber && diff >= 0) {
@@ -27,40 +34,38 @@ export class VnStockTickService {
       if (insidePeriod) {
         return {
           symbol: symbolCode,
-          open: Math.round(tickData.open),
-          high: tickData.high,
-          low: tickData.low,
-          close: Math.round(tickData.close),
-          volume: tickData.volume,
-          time: tickData.time,
+          open: Math.round(barData.open),
+          high: barData.high,
+          low: barData.low,
+          close: Math.round(barData.close),
+          volume: barData.volume,
+          time: barData.time,
         };
       }
 
       return {
         symbol: symbolCode,
-        open: Math.round(tickData.open),
+        open: Math.round(barData.open),
         high: 0,
         low: 0,
-        close: Math.round(tickData.close),
+        close: Math.round(barData.close),
         volume: 0,
-        time: moment
-          .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
-          .format('YYYY-MM-DD hh:mm:ss'),
+        time: time,
       };
     }
 
-    if (resolution == '1D') {
-      const resolutionNumber = parseInt(resolution);
-      const diff = moment().diff(tickData.time, 'days');
-      if (diff == 0) {
+    if (resolution.includes('D')) {
+      const resolutionNumber = parseInt(resolution[0]);
+      const diff = moment().diff(barData.time, 'days');
+      if (diff < resolutionNumber) {
         return {
           symbol: symbolCode,
-          open: tickData.open,
-          high: tickData.high,
-          low: tickData.low,
-          close: tickData.close,
-          volume: tickData.volume,
-          time: tickData.time,
+          open: barData.open,
+          high: barData.high,
+          low: barData.low,
+          close: barData.close,
+          volume: barData.volume,
+          time: barData.time,
         };
       }
 
@@ -77,15 +82,15 @@ export class VnStockTickService {
       };
     }
 
-    if (['1W', '1M'].includes(resolution)) {
+    if (resolution.includes('M') || resolution.includes('W')) {
       return {
         symbol: symbolCode,
-        open: tickData.open,
-        high: tickData.high,
-        low: tickData.low,
-        close: tickData.close,
-        volume: tickData.volume,
-        time: tickData.time,
+        open: barData.open,
+        high: barData.high,
+        low: barData.low,
+        close: barData.close,
+        volume: barData.volume,
+        time: barData.time,
       };
     }
 
@@ -94,13 +99,15 @@ export class VnStockTickService {
 
   async getTickData(symbolCode: string, resolution: string): Promise<any> {
     let data;
+    let isNotMinute = true;
 
-    const isNotMinute =
+    if (
       resolution.includes('D') ||
       resolution.includes('W') ||
       resolution.includes('M')
-        ? true
-        : false;
+    ) {
+      isNotMinute = false;
+    }
 
     if (!isNotMinute) {
       data = await this.vnStockTickRepository.getTickByMinute(
@@ -124,13 +131,71 @@ export class VnStockTickService {
 
     data.open = open;
     data.close = close;
+
     return data;
   }
 
-  async getTicksByResolution(
+  async getBarByResolution(
     symbolCode: string,
     resolution: string,
   ): Promise<any> {
+    const ticks = await this.getTicks(symbolCode, resolution, 1);
+
+    const result = {};
+
+    ticks.forEach((tick) => {
+      if (!result[tick.time]) {
+        result[tick.time] = {
+          time: tick.time,
+          open: tick.open,
+          high: tick.high,
+          low: tick.low,
+          volume: tick.volume,
+          close: tick.close,
+        };
+      } else {
+        result[tick.time].close = tick.close;
+      }
+    });
+
+    const bars = Object.values(result);
+
+    return bars[0] ?? {};
+  }
+
+  async getBarsByResolution(
+    symbolCode: string,
+    resolution: string,
+  ): Promise<any> {
+    const ticks = await this.getTicks(symbolCode, resolution, 1);
+
+    const result = {};
+
+    ticks.forEach((tick) => {
+      if (!result[tick.time]) {
+        result[tick.time] = {
+          time: tick.time,
+          open: tick.open,
+          high: tick.high,
+          low: tick.low,
+          volume: tick.volume,
+          close: tick.close,
+        };
+      } else {
+        result[tick.time].close = tick.close;
+      }
+    });
+
+    const bars = Object.values(result);
+    const total = bars.length;
+
+    return {
+      total: total,
+      list: bars,
+    };
+  }
+
+  async getTicks(symbolCode: string, resolution: string, limit: number = 200) {
     let ticks: Array<any> = [];
     let dataSelect;
 
@@ -158,31 +223,9 @@ export class VnStockTickService {
     ticks = await this.vnStockTickRepository.getDataByResolution(
       symbolCode,
       dataSelect,
+      limit,
     );
 
-    const result = {};
-
-    ticks.forEach((tick) => {
-      if (!result[tick.time]) {
-        result[tick.time] = {
-          time: tick.time,
-          open: tick.open,
-          high: tick.high,
-          low: tick.low,
-          volume: tick.volume,
-          close: tick.close,
-        };
-      } else {
-        result[tick.time].close = tick.close;
-      }
-    });
-
-    const list = Object.values(result);
-    const total = list.length;
-
-    return {
-      total: total,
-      list: list,
-    };
+    return ticks;
   }
 }
