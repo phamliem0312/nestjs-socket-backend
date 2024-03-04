@@ -56,21 +56,14 @@ export class VnStockTickRepository extends ModelRepository {
     from: string,
     to: string,
   ): Promise<any> {
-    const result = await this.knex.raw(`
-      SELECT
-        symbol,
-        open,
-        close,
-        high,
-        low,
-        volume
-      FROM vnstock_ticks
-      WHERE symbol = '${symbolCode}'
-        AND date >= '${from}'
-        AND date < '${to}'
-      ORDER BY date asc
-      `);
+    const result = await this.knex
+      .select('symbol', 'open', 'close', 'high', 'low', 'volume')
+      .from(this.entityName)
+      .where('symbol', symbolCode)
+      .andWhere('date', '>=', from)
+      .andWhere('date', '<', to)
+      .orderBy('date', 'asc');
 
-    return result[0] ? result[0] : [];
+    return result ? result : [];
   }
 }
