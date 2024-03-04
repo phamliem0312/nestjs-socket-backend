@@ -100,7 +100,6 @@ export class VnStockTickService {
       const currentDate = time
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
-        console.log(currentDate);
       return {
         fromTime: beginDate,
         toTime: time.format('YYYY-MM-DD 15:00:00'),
