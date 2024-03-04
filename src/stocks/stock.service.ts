@@ -15,7 +15,7 @@ export class StockService {
     });
   }
 
-  async getLastBar(symbolCode, resolution) {
+  async getLastBar(id, symbolCode, resolution) {
     const options = {
       params: {
         symbol: symbolCode,
@@ -23,10 +23,52 @@ export class StockService {
       },
     };
 
-    const response = await this.getRequest('tv/1/lastbar', options);
+    const response = await this.getRequest(`tv/${id}/lastbar`, options);
 
     return {
-      data: response.data,
+      success: response.data.success ? true : false,
+      data: response.data.data,
+    };
+  }
+
+  async getHistory(id, params: any) {
+    const options = {
+      params,
+    };
+
+    const response = await this.getRequest(`tv/${id}/history`, options);
+
+    return {
+      success: response.data.success ? true : false,
+      data: response.data.data,
+    };
+  }
+
+  async getSymbolData(id, symbolName) {
+    const options = {
+      params: {
+        name: symbolName,
+      },
+    };
+
+    const response = await this.getRequest(`tv/${id}/symbol`, options);
+
+    return {
+      success: response.data.success ? true : false,
+      data: response.data.data,
+    };
+  }
+
+  async getAllSymbol(id, params: any) {
+    const options = {
+      params,
+    };
+
+    const response = await this.getRequest(`tv/${id}/search`, options);
+
+    return {
+      success: response.data.success ? true : false,
+      data: response.data.data,
     };
   }
 
