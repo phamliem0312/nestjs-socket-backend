@@ -1,18 +1,19 @@
 import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
-import { Request } from 'express';
 import { StockService } from './stock.service';
+import { Request } from 'express';
 
 @Controller('stocks')
 export class StockController {
   constructor(private readonly stockService: StockService) {}
 
-  @Get('/history/:id')
-  async getHistory(@Req() req: Request): Promise<any> {
-    const id = req.params.id;
+  @Get('/lastbar')
+  async getLastBar(@Req() req: Request): Promise<any> {
+    const symbol = req.query.symbol;
+    const resolution = req.query.resolution;
 
-    if (!id) {
-      throw new BadRequestException('Missing parameter id');
+    if (!symbol || !resolution) {
+      throw new BadRequestException('Missing parameter!');
     }
-    return await this.stockService.getHistory(id);
+    return await this.stockService.getLastBar(symbol, resolution);
   }
 }

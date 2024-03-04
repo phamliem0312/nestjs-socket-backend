@@ -6,10 +6,8 @@ import FClientConfig from './stock.config';
 export class StockService {
   private axiosIntance: AxiosInstance;
   private baseUrl: string;
-  private token: string;
   constructor() {
     this.baseUrl = FClientConfig.baseUrl;
-    this.token = FClientConfig.token;
 
     this.axiosIntance = axios.create({
       baseURL: this.baseUrl,
@@ -17,17 +15,15 @@ export class StockService {
     });
   }
 
-  async getHistory(id: string) {
+  async getLastBar(symbolCode, resolution) {
     const options = {
       params: {
-        token: this.token,
-        email: 'op1@noibaiconnect.com',
-        action: 'getFclientData',
-        ids: id,
+        symbol: symbolCode,
+        resolution: resolution,
       },
     };
 
-    const response = await this.getRequest('fapi', options);
+    const response = await this.getRequest('tv/1/lastbar', options);
 
     return {
       data: response.data,
