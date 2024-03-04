@@ -53,68 +53,24 @@ export class VnStockTickRepository extends ModelRepository {
 
   async getDataByResolution(
     symbolCode: string,
-    dateSelect: string,
-    limit: number = 1,
-    order: string = 'desc',
+    from: string,
+    to: string,
   ): Promise<any> {
     const result = await this.knex.raw(`
-      SELECT distinct
-        date_format(a.time, '%Y-%m-%d %H:%i:%s') as time,
-        date_format(DATE, '%Y-%m-%d %H:%i:%s') as date,
-        OPEN as open,
-        CLOSE as close,
-        a.volume as volume,
-        a.high as high,
-        a.low as low
-      from vnstock_ticks right join
-      (
       SELECT
-          ${dateSelect} as time,
-          min(DATE) as min_date,
-          max(DATE) as max_date,
-          sum(VOLUME) as volume,
-          max(HIGH) as high,
-          min(low) as low
-      FROM ${this.entityName}
-      where SYMBOL = '${symbolCode}'
-      group by 1
-      order by 1 ${order}
-      limit ${limit} offset 0
-      ) a on a.min_date = date or a.max_date = date
-      where SYMBOL = '${symbolCode}'
+        symbol,
+        open,
+        close,
+        high,
+        low,
+        volume
+      FROM vnstock_ticks
+      WHERE symbol = '${symbolCode}'
+        AND date >= '${from}'
+        AND date < '${to}'
+      ORDER BY date asc
       `);
 
     return result[0] ? result[0] : [];
-  }
-
-  async getOpenCloseByDate(
-    symbolCode: string,
-    minDate: string,
-    maxDate: string,
-  ): Promise<any> {
-    const result1 = await this.knex.raw(`
-      select 
-        OPEN as open
-      from ${this.entityName}
-      where SYMBOL="${symbolCode}"
-        and DATE="${maxDate}"
-      order by DATE desc
-      limit 1 offset 0
-      `);
-
-    const result2 = await this.knex.raw(`
-      select 
-        CLOSE as close
-      from ${this.entityName}
-      where SYMBOL="${symbolCode}"
-        and DATE="${minDate}"
-      order by DATE asc
-      limit 1 offset 0
-      `);
-
-    return {
-      open: result1[0][0].open ?? 0,
-      close: result2[0][0].close ?? 0,
-    };
   }
 }

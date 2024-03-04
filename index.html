@@ -74,7 +74,7 @@
     });
 
     socket.on('connected', function (msg) {
-      socket.emit('subscribe', { subscribeId: 'HPG_#_1D' });
+      socket.emit('subscribe', { symbol: 'HPG', resolution: '5D' });
     });
 
     socket.on('message', function (msg) {

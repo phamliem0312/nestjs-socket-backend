@@ -31,10 +31,12 @@ export class EventGateway {
   }
 
   @SubscribeMessage('subscribe')
-  async handleSubscribe(client: Socket, eventData: { subscribeId: string }) {
-    const subscribe = eventData.subscribeId.split('_');
-    const symbolCode = subscribe[0] ?? null;
-    const resolution = subscribe[2] ?? null;
+  async handleSubscribe(
+    client: Socket,
+    eventData: { symbol: string; resolution: string },
+  ) {
+    const symbolCode = eventData.symbol ?? null;
+    const resolution = eventData.resolution ?? null;
     const room = `${symbolCode}-${resolution}`;
 
     const cachedData = await this.cacheManager.get(room);

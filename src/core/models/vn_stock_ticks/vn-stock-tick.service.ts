@@ -3,229 +3,137 @@ import { VnStockTickRepository } from './vn-stock-tick.repository';
 import * as moment from 'moment';
 @Injectable()
 export class VnStockTickService {
-  private resolutionDayUnit: string[] = ['D', 'W', 'M'];
-  private recordLimit: number = 200;
-  constructor(private readonly vnStockTickRepository: VnStockTickRepository) { }
+  constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
     const barData = await this.getBarByResolution(symbolCode, resolution);
-    let isNotMinute = true;
 
-    if (
-      resolution.includes('D') ||
-      resolution.includes('W') ||
-      resolution.includes('M')
-    ) {
-      isNotMinute = false;
-    }
-
-    if (isNotMinute) {
-      const resolutionNumber = parseInt(resolution);
-      const time = moment
-        .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
-        .format('YYYY-MM-DD H:mm:ss');
-      const diff = moment().diff(barData.time, 'minutes');
-      let insidePeriod = false;
-
-      if (diff < resolutionNumber && diff >= 0) {
-        insidePeriod = true;
-      }
-
-      if (insidePeriod) {
-        return {
-          symbol: symbolCode,
-          open: Math.round(barData.open),
-          high: barData.high,
-          low: barData.low,
-          close: Math.round(barData.close),
-          volume: barData.volume,
-          time: barData.time,
-        };
-      }
-
-      return {
-        symbol: symbolCode,
-        open: Math.round(barData.open),
-        high: 0,
-        low: 0,
-        close: Math.round(barData.close),
-        volume: 0,
-        time: time,
-      };
-    }
-
-    if (resolution.includes('D')) {
-      const resolutionNumber = parseInt(resolution[0]);
-      const diff = moment().diff(barData.time, 'days');
-      if (diff < resolutionNumber) {
-        return {
-          symbol: symbolCode,
-          open: barData.open,
-          high: barData.high,
-          low: barData.low,
-          close: barData.close,
-          volume: barData.volume,
-          time: barData.time,
-        };
-      }
-
-      return {
-        symbol: symbolCode,
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 0,
-        volume: 0,
-        time: moment
-          .unix(moment().unix() - (moment().unix() % (resolutionNumber * 60)))
-          .format('YYYY-MM-DD'),
-      };
-    }
-
-    if (resolution.includes('M') || resolution.includes('W')) {
-      return {
-        symbol: symbolCode,
-        open: barData.open,
-        high: barData.high,
-        low: barData.low,
-        close: barData.close,
-        volume: barData.volume,
-        time: barData.time,
-      };
-    }
-
-    return {};
-  }
-
-  async getTickData(symbolCode: string, resolution: string): Promise<any> {
-    let data;
-    let isNotMinute = true;
-
-    if (
-      resolution.includes('D') ||
-      resolution.includes('W') ||
-      resolution.includes('M')
-    ) {
-      isNotMinute = false;
-    }
-
-    if (!isNotMinute) {
-      data = await this.vnStockTickRepository.getTickByMinute(
-        symbolCode,
-        resolution,
-      );
-    }
-
-    if (isNotMinute) {
-      data = await this.vnStockTickRepository.getTickByDay(
-        symbolCode,
-        resolution,
-      );
-    }
-
-    const { open, close } = await this.vnStockTickRepository.getOpenCloseByDate(
-      symbolCode,
-      data.minDate,
-      data.maxDate,
-    );
-
-    data.open = open;
-    data.close = close;
-
-    return data;
+    return barData;
   }
 
   async getBarByResolution(
     symbolCode: string,
     resolution: string,
   ): Promise<any> {
-    const ticks = await this.getTicks(symbolCode, resolution, 1);
-
-    const result = {};
-
-    ticks.forEach((tick) => {
-      if (!result[tick.time]) {
-        result[tick.time] = {
-          time: tick.time,
-          open: tick.open,
-          high: tick.high,
-          low: tick.low,
-          volume: tick.volume,
-          close: tick.close,
-        };
-      } else {
-        result[tick.time].close = tick.close;
-      }
-    });
-
-    const bars = Object.values(result);
-
-    return bars[0] ?? {};
-  }
-
-  async getBarsByResolution(
-    symbolCode: string,
-    resolution: string,
-  ): Promise<any> {
-    const ticks = await this.getTicks(symbolCode, resolution, 1);
-
-    const result = {};
-
-    ticks.forEach((tick) => {
-      if (!result[tick.time]) {
-        result[tick.time] = {
-          time: tick.time,
-          open: tick.open,
-          high: tick.high,
-          low: tick.low,
-          volume: tick.volume,
-          close: tick.close,
-        };
-      } else {
-        result[tick.time].close = tick.close;
-      }
-    });
-
-    const bars = Object.values(result);
-    const total = bars.length;
-
-    return {
-      total: total,
-      list: bars,
+    const { ticks, time } = await this.getTicks(symbolCode, resolution);
+    const bar = ticks[0] ?? {
+      symbol: symbolCode,
+      open: 0,
+      close: 0,
+      high: 0,
+      low: 0,
+      volume: 0,
     };
+
+    bar.time = time;
+
+    ticks.forEach((tick) => {
+      if (!bar.open) {
+        bar.open = tick.open ?? 0;
+      }
+
+      if (bar.high < tick.high) {
+        bar.high = tick.high ?? 0;
+      }
+
+      if (bar.low > tick.low) {
+        bar.low = tick.low ?? 0;
+      }
+
+      bar.close = tick.close;
+      bar.volume += tick.volume;
+    });
+
+    return bar;
   }
 
-  async getTicks(symbolCode: string, resolution: string, limit: number = 200) {
-    let ticks: Array<any> = [];
-    let dataSelect;
+  async getTicks(symbolCode: string, resolution: string) {
+    const { fromTime, toTime, time } =
+      this.getTimePeriodByResolution(resolution);
+    const ticks = await this.vnStockTickRepository.getDataByResolution(
+      symbolCode,
+      fromTime,
+      toTime,
+    );
 
-    if (
-      !resolution.includes('D') &&
-      !resolution.includes('W') &&
-      !resolution.includes('M')
-    ) {
-      dataSelect = `from_unixtime(floor(unix_timestamp(DATE)/(${resolution}*60))*(${resolution}*60))`;
+    return { ticks: ticks, time: time };
+  }
+
+  getTimePeriodByResolution(resolution: string) {
+    if (resolution.includes('h')) {
+      const time = moment();
+      const currentHour = moment().hours();
+      const period = parseInt(resolution[0]);
+      const hour =
+        Math.floor(currentHour / period) * period < 10
+          ? '0' + Math.floor(currentHour / period) * period
+          : Math.floor(currentHour / period) * period;
+      return {
+        fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        toTime: time.format(`YYYY-MM-DD H:mm:ss`),
+        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+      };
     }
 
     if (resolution.includes('D')) {
-      dataSelect = `date_format(DATE, '%Y-%m-%d')`;
+      const time = moment();
+      const period = parseInt(resolution[0]);
+      const currentDay = time.date();
+      const beginDay =
+        Math.floor(currentDay / period) * period + 1 < 10
+          ? '0' + (Math.floor(currentDay / period) * period + 1)
+          : Math.floor(currentDay / period) * period + 1;
+      return {
+        fromTime: time.format(`YYYY-MM-${beginDay} 09:00:00`),
+        toTime: time.format('YYYY-MM-DD 15:00:00'),
+        time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
+      };
     }
 
     if (resolution.includes('W')) {
-      dataSelect = `concat(week(DATE), '-', year(DATE))`;
+      const time = moment().isoWeekday(1);
+      const period = parseInt(resolution[0]);
+      const beginDate = time
+        .weekday(8 - period * 7)
+        .format('YYYY-MM-DD 09:00:00');
+      const currentDate = time
+        .weekday(8 - period * 7)
+        .format('YYYY-MM-DD 00:00:00');
+      return {
+        fromTime: beginDate,
+        toTime: time.format('YYYY-MM-DD 15:00:00'),
+        time: currentDate,
+      };
     }
 
     if (resolution.includes('M')) {
-      const monthPeriod = resolution[0];
-      dataSelect = `concat(year(DATE), '-', (floor((month(DATE)-1)/${monthPeriod})*(${monthPeriod}) + 1), '-01')`;
+      const time = moment();
+      const period = parseInt(resolution[0]);
+      const beginMonth = Math.floor((time.months() + 1) / period) * period;
+      const fromTime = time.format(
+        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 09:00:00`,
+      );
+      const currentDate = time.format(
+        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
+      );
+      return {
+        fromTime: fromTime,
+        toTime: time.format('YYYY-MM-DD 15:00:00'),
+        time: currentDate,
+      };
     }
 
-    ticks = await this.vnStockTickRepository.getDataByResolution(
-      symbolCode,
-      dataSelect,
-      limit,
-    );
+    const currentMinute = moment().minutes();
+    const resolutionNumber = parseInt(resolution);
 
-    return ticks;
+    return {
+      fromTime: moment().format(
+        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+      ),
+      toTime: moment().format('YYYY-MM-DD H:mm:ss'),
+      time: moment().format(
+        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+      ),
+    };
   }
 }
