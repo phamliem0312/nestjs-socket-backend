@@ -16,6 +16,7 @@ export class VnStockTickService {
     resolution: string,
   ): Promise<any> {
     const { ticks, time } = await this.getTicks(symbolCode, resolution);
+
     const bar = ticks[0] ?? {
       symbol: symbolCode,
       open: 0,
@@ -25,7 +26,7 @@ export class VnStockTickService {
       volume: 0,
     };
 
-    bar.time = time;
+    bar.time = parseInt(moment(time).format('X')) * 1000;
 
     ticks.forEach((tick) => {
       if (!bar.open) {
@@ -99,6 +100,7 @@ export class VnStockTickService {
       const currentDate = time
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
+        console.log(currentDate);
       return {
         fromTime: beginDate,
         toTime: time.format('YYYY-MM-DD 15:00:00'),
