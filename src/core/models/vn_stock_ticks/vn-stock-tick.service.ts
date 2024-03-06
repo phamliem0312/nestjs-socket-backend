@@ -44,6 +44,10 @@ export class VnStockTickService {
       bar.close = tick.close;
       bar.volume += tick.volume;
     });
+    bar.open = bar.open / 1000;
+    bar.high = bar.high / 1000;
+    bar.low = bar.low / 1000;
+    bar.close = bar.close / 1000;
 
     return bar;
   }
@@ -81,9 +85,9 @@ export class VnStockTickService {
       const period = parseInt(resolution[0]);
       const currentDay = time.date();
       const beginDay =
-        Math.floor(currentDay / period) * period + 1 < 10
-          ? '0' + (Math.floor(currentDay / period) * period + 1)
-          : Math.floor(currentDay / period) * period + 1;
+        Math.floor((currentDay - 1) / period) * period + 1 < 10
+          ? '0' + (Math.floor((currentDay - 1) / period) * period + 1)
+          : Math.floor((currentDay - 1) / period) * period + 1;
       return {
         fromTime: time.format(`YYYY-MM-${beginDay} 09:00:00`),
         toTime: time.format('YYYY-MM-DD 15:00:00'),
