@@ -69,9 +69,13 @@
   <script src="./public/socket.io.js"></script>
 
   <script>
-    var socket = io('http://localhost:3006', {
-      transports: ['websocket'] 
+   try {
+    var socket = io('http://103.179.189.71:3006', {
+      transports: ['websocket']
     });
+   } catch (error) {
+    console.log(error);
+   }
 
     socket.on('connected', function (msg) {
       socket.emit('subscribe', { symbol: 'HPG', resolution: '5D' });
