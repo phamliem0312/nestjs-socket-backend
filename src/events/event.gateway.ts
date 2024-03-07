@@ -12,7 +12,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 export class EventGateway {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('EventGateway');
-  private readonly intervalTime = 20000;
+  private readonly intervalTime: number = 5000;
   constructor(
     private readonly vnStockTickService: VnStockTickService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -27,43 +27,66 @@ export class EventGateway {
   }
 
   async handleDisconnect(client: Socket) {
-    client.emit('disconnected');
+    const rooms = client.rooms;
+
+    this.leaveAllRooms(client, rooms);
   }
 
   @SubscribeMessage('subscribe')
   async handleSubscribe(
     client: Socket,
-    eventData: { symbol: string; resolution: string },
+    eventData: { subscriberUID: string; symbol: string; resolution: string },
   ) {
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
-    const room = `${symbolCode}-${resolution}`;
+    const room = eventData.subscriberUID;
+
+    client.join(room);
 
     const cachedData = await this.cacheManager.get(room);
 
     if (cachedData) {
       client.emit('message', cachedData);
-    }
-
-    const intervalTimer = setInterval(async () => {
-      if (client.disconnected) {
-        clearInterval(intervalTimer);
-      }
-      const cachedData = await this.cacheManager.get(room);
-
-      if (cachedData) {
-        client.emit('message', cachedData);
-        return;
-      }
-      const data = await this.vnStockTickService.getSocketData(
+    } else {
+      this.cacheManager.set(room, {});
+      this.initIntervalTimer(room, {
         symbolCode,
         resolution,
+      });
+    }
+  }
+
+  @SubscribeMessage('unsubscribe')
+  async handleUnsubscribe(
+    client: Socket,
+    eventData: { subscriberUID: string },
+  ) {
+    const room = eventData.subscriberUID;
+
+    client.leave(room);
+  }
+
+  initIntervalTimer(
+    room: string,
+    params: {
+      symbolCode: string;
+      resolution: string;
+    },
+  ) {
+    setInterval(async () => {
+      const data = await this.vnStockTickService.getSocketData(
+        params.symbolCode,
+        params.resolution,
       );
       this.cacheManager.set(room, data);
 
-      client.emit('message', data);
+      this.server.to(room).emit('message', data);
     }, this.intervalTime);
+  }
 
-    intervalTimer;
+  leaveAllRooms(client: Socket, rooms){
+    rooms.forEach((room: string) => {
+      client.leave(room);
+    });
   }
 }

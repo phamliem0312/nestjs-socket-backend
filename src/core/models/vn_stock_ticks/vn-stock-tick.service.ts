@@ -26,6 +26,7 @@ export class VnStockTickService {
       volume: 0,
     };
 
+    bar.datetime = time;
     bar.time = parseInt(moment(time).format('X')) * 1000;
 
     ticks.forEach((tick) => {
