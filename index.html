@@ -70,7 +70,7 @@
 
   <script>
    try {
-    var socket = io('http://103.179.189.71:3006', {
+    const socket = io('https://wss.mindthegapstudio.com:1006', {
       transports: ['websocket']
     });
    } catch (error) {
@@ -78,7 +78,8 @@
    }
 
     socket.on('connected', function (msg) {
-      socket.emit('subscribe', { symbol: 'HPG', resolution: '5D' });
+      socket.emit('subscribe', { subscriberUID: "HPG_#_1", symbol: 'HPG', resolution: '1' });
+      console.log({ subscriberUID: "HPG_#_1", symbol: 'HPG', resolution: '1' });
     });
 
     socket.on('message', function (msg) {
