@@ -70,7 +70,10 @@
 
   <script>
    try {
-    const socket = io('https://wss.mindthegapstudio.com:1006', {
+    // const socket = io('https://wss.mindthegapstudio.com:1006', {
+    //   transports: ['websocket']
+    // });
+    const socket = io('http://127.0.0.1:3006', {
       transports: ['websocket']
     });
    } catch (error) {
