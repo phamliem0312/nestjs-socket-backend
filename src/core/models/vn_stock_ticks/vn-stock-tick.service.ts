@@ -5,17 +5,30 @@ import * as moment from 'moment';
 export class VnStockTickService {
   constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
 
-  async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const barData = await this.getBarByResolution(symbolCode, resolution);
+  async getSocketData(
+    exchange: string,
+    symbolCode: string,
+    resolution: string,
+  ): Promise<any> {
+    const barData = await this.getBarByResolution(
+      exchange,
+      symbolCode,
+      resolution,
+    );
 
     return barData;
   }
 
   async getBarByResolution(
+    exchange: string,
     symbolCode: string,
     resolution: string,
   ): Promise<any> {
-    const { ticks, time } = await this.getTicks(symbolCode, resolution);
+    const { ticks, time } = await this.getTicks(
+      exchange,
+      symbolCode,
+      resolution,
+    );
 
     const bar = ticks[0] ?? {
       symbol: symbolCode,
@@ -53,10 +66,11 @@ export class VnStockTickService {
     return bar;
   }
 
-  async getTicks(symbolCode: string, resolution: string) {
+  async getTicks(exchange: string, symbolCode: string, resolution: string) {
     const { fromTime, toTime, time } =
       this.getTimePeriodByResolution(resolution);
     const ticks = await this.vnStockTickRepository.getDataByResolution(
+      exchange,
       symbolCode,
       fromTime,
       toTime,

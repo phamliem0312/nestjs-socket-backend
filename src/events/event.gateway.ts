@@ -35,8 +35,14 @@ export class EventGateway {
   @SubscribeMessage('subscribe')
   async handleSubscribe(
     client: Socket,
-    eventData: { subscriberUID: string; symbol: string; resolution: string },
+    eventData: {
+      subscriberUID: string;
+      exchange: string;
+      symbol: string;
+      resolution: string;
+    },
   ) {
+    const exchange = eventData.symbol ?? null;
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
     const room = eventData.subscriberUID;
@@ -50,6 +56,7 @@ export class EventGateway {
     } else {
       this.cacheManager.set(room, {});
       this.initIntervalTimer(room, {
+        exchange,
         symbolCode,
         resolution,
       });
@@ -69,12 +76,14 @@ export class EventGateway {
   initIntervalTimer(
     room: string,
     params: {
+      exchange: string;
       symbolCode: string;
       resolution: string;
     },
   ) {
     setInterval(async () => {
       const data = await this.vnStockTickService.getSocketData(
+        params.exchange,
         params.symbolCode,
         params.resolution,
       );
@@ -84,7 +93,7 @@ export class EventGateway {
     }, this.intervalTime);
   }
 
-  leaveAllRooms(client: Socket, rooms){
+  leaveAllRooms(client: Socket, rooms) {
     rooms.forEach((room: string) => {
       client.leave(room);
     });

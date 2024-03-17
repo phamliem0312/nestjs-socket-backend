@@ -52,13 +52,16 @@ export class VnStockTickRepository extends ModelRepository {
   }
 
   async getDataByResolution(
+    exchange: string,
     symbolCode: string,
     from: string,
     to: string,
   ): Promise<any> {
+    const entityName =
+      exchange === 'binance' ? 'crypto_ticks' : 'vnstock_ticks';
     const result = await this.knex
       .select('symbol', 'open', 'close', 'high', 'low', 'volume')
-      .from(this.entityName)
+      .from(entityName)
       .where('symbol', symbolCode)
       .andWhere('date', '>=', from)
       .andWhere('date', '<', to)
