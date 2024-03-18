@@ -104,7 +104,7 @@ export class VnStockTickService {
           ? '0' + (Math.floor((currentDay - 1) / period) * period + 1)
           : Math.floor((currentDay - 1) / period) * period + 1;
       return {
-        fromTime: time.format(`YYYY-MM-${beginDay} 09:00:00`),
+        fromTime: time.format(`YYYY-MM-${beginDay} 00:00:00`),
         toTime: time.format('YYYY-MM-DD 15:00:00'),
         time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
       };
@@ -115,7 +115,7 @@ export class VnStockTickService {
       const period = parseInt(resolution[0]);
       const beginDate = time
         .weekday(8 - period * 7)
-        .format('YYYY-MM-DD 09:00:00');
+        .format('YYYY-MM-DD 00:00:00');
       const currentDate = time
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
@@ -131,7 +131,7 @@ export class VnStockTickService {
       const period = parseInt(resolution[0]);
       const beginMonth = Math.floor((time.months() + 1) / period) * period;
       const fromTime = time.format(
-        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 09:00:00`,
+        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
       );
       const currentDate = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
