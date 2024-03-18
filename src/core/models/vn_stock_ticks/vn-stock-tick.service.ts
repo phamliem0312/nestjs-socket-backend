@@ -58,10 +58,10 @@ export class VnStockTickService {
       bar.close = tick.close;
       bar.volume += tick.volume;
     });
-    bar.open = bar.open / 1000;
-    bar.high = bar.high / 1000;
-    bar.low = bar.low / 1000;
-    bar.close = bar.close / 1000;
+    bar.open = exchange === 'binance' ? bar.open : bar.open / 1000;
+    bar.high = exchange === 'binance' ? bar.high : bar.high / 1000;
+    bar.low = exchange === 'binance' ? bar.low : bar.low / 1000;
+    bar.close = exchange === 'binance' ? bar.close : bar.close / 1000;
 
     return bar;
   }
