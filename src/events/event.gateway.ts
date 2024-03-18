@@ -42,7 +42,7 @@ export class EventGateway {
       resolution: string;
     },
   ) {
-    const exchange = eventData.symbol ?? null;
+    const exchange = eventData.exchange ?? null;
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
     const room = eventData.subscriberUID;
