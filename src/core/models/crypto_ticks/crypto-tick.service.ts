@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { VnStockTickRepository } from './vn-stock-tick.repository';
+import { CryptoTickRepository } from './crypto-tick.repository';
 import * as moment from 'moment';
 @Injectable()
-export class VnStockTickService {
-  constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
+export class CryptoTickService {
+  constructor(private readonly cryptoTickRepository: CryptoTickRepository) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
     const barData = await this.getBarByResolution(symbolCode, resolution);
@@ -43,12 +43,8 @@ export class VnStockTickService {
       }
 
       bar.close = tick.close;
-      bar.volume += tick.volume;
+      bar.volume = tick.volume;
     });
-    bar.open = bar.open / 1000;
-    bar.high = bar.high / 1000;
-    bar.low = bar.low / 1000;
-    bar.close = bar.close / 1000;
 
     return bar;
   }
@@ -56,7 +52,7 @@ export class VnStockTickService {
   async getTicks(symbolCode: string, resolution: string) {
     const { fromTime, toTime, time } =
       this.getTimePeriodByResolution(resolution);
-    const ticks = await this.vnStockTickRepository.getDataByResolution(
+    const ticks = await this.cryptoTickRepository.getDataByResolution(
       symbolCode,
       fromTime,
       toTime,

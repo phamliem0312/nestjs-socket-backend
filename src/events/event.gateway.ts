@@ -5,7 +5,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
-import { VnStockTickService } from 'src/core/models/vn_stock_ticks/vn-stock-tick.service';
+import { EventService } from './event.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @WebSocketGateway(3006)
@@ -14,7 +14,7 @@ export class EventGateway {
   private logger: Logger = new Logger('EventGateway');
   private readonly intervalTime: number = 5000;
   constructor(
-    private readonly vnStockTickService: VnStockTickService,
+    private readonly eventService: EventService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -82,7 +82,7 @@ export class EventGateway {
     },
   ) {
     setInterval(async () => {
-      const data = await this.vnStockTickService.getSocketData(
+      const data = await this.eventService.getSocketData(
         params.exchange,
         params.symbolCode,
         params.resolution,

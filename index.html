@@ -77,7 +77,7 @@
     });
 
     socket.on('connected', function (msg) {
-      socket.emit('subscribe', { subscriberUID: "BTCUSDT_#_1D", exchange: "binance", symbol:"BTCUSDT", resolution: '1D' });
+      socket.emit('subscribe', { subscriberUID: "HPG_#_1W", exchange: "horse", symbol:"HPG", resolution: '1W' });
     });
 
     socket.on('message', function (msg) {
