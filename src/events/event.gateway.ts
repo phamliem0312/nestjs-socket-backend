@@ -12,7 +12,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 export class EventGateway {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('EventGateway');
-  private readonly intervalTime: number = 5000;
+  private readonly intervalTime: number = 1000;
   constructor(
     private readonly eventService: EventService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
