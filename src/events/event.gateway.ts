@@ -81,8 +81,6 @@ export class EventGateway {
       resolution: string;
     },
   ) {
-    console.log("????: ", params);
-    
     setInterval(async () => {
       const data = await this.eventService.getSocketData(
         params.exchange,
