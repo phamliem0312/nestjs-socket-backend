@@ -12,7 +12,6 @@ export class ModelRepository {
     from: string,
     to: string,
   ): Promise<any> {
-    console.log(this.entityName, symbolCode, from, to);
     const result = await this.knex
       .select('symbol', 'open', 'close', 'high', 'low', 'volume')
       .from(this.entityName)
