@@ -42,6 +42,7 @@ export class EventGateway {
       resolution: string;
     },
   ) {
+    console.log('Event Data: ', eventData);
     const exchange = eventData.exchange ?? null;
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
