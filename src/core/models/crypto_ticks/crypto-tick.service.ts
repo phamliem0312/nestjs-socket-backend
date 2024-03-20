@@ -45,10 +45,12 @@ export class CryptoTickService {
   async getTicks(symbolCode: string, resolution: string) {
     const { fromTime, toTime, time } =
       this.getTimePeriodByResolution(resolution);
-    const ticks = await this.cryptoTickRepository.getDataByResolution(
+    const entityName = this.getEntityNameByResolution(resolution);
+    const ticks = await this.cryptoTickRepository.getDataByEntity(
       symbolCode,
       moment(fromTime).utc().format('YYYY-MM-DD H:mm:ss'),
       moment(toTime).utc().format('YYYY-MM-DD H:mm:ss'),
+      entityName,
     );
 
     return { ticks: ticks, time: time };
@@ -130,5 +132,38 @@ export class CryptoTickService {
         `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
       ),
     };
+  }
+
+  getEntityNameByResolution(resolution: string) {
+    const entityMapping = {
+      s: 'crypto_tick_s1s',
+      m: 'crypto_tick_m15s',
+      '1h': 'crypto_tick_h1s',
+      '4h': 'crypto_tick_h4s',
+      d: 'crypto_tick_d1s',
+      w: 'crypto_tick_w1s',
+    };
+
+    if (resolution.includes('s')) {
+      return entityMapping['s'];
+    }
+
+    if (resolution.includes('m')) {
+      return entityMapping['m'];
+    }
+
+    if (resolution.includes('1h')) {
+      return entityMapping['1h'];
+    }
+
+    if (resolution.includes('d')) {
+      return entityMapping['d'];
+    }
+
+    if (resolution.includes('w')) {
+      return entityMapping['w'];
+    }
+
+    return null;
   }
 }
