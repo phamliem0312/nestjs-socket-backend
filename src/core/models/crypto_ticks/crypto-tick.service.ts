@@ -16,35 +16,28 @@ export class CryptoTickService {
     resolution: string,
   ): Promise<any> {
     const { ticks, time } = await this.getTicks(symbolCode, resolution);
+    const tickTotal = ticks.length;
 
-    const bar = ticks[0] ?? {
-      symbol: symbolCode,
-      open: 0,
-      close: 0,
-      high: 0,
-      low: 0,
-      volume: 0,
-    };
+    if (tickTotal === 0) {
+      return {
+        symbol: symbolCode,
+        open: 0,
+        close: 0,
+        high: 0,
+        low: 0,
+        volume: 0,
+      };
+    }
+
+    const bar = ticks[tickTotal - 1];
 
     bar.datetime = time;
     bar.time = parseInt(moment(time).format('X')) * 1000;
-
-    ticks.forEach((tick) => {
-      if (!bar.open) {
-        bar.open = tick.open ?? 0;
-      }
-
-      if (bar.high < tick.high) {
-        bar.high = tick.high ?? 0;
-      }
-
-      if (bar.low > tick.low) {
-        bar.low = tick.low ?? 0;
-      }
-
-      bar.close = tick.close;
-      bar.volume = tick.volume;
-    });
+    bar.open = bar.open ?? 0;
+    bar.high = bar.high ?? 0;
+    bar.low = bar.low ?? 0;
+    bar.close = bar.close;
+    bar.volume = bar.volume;
 
     return bar;
   }
