@@ -36,8 +36,8 @@ export class CryptoTickService {
     bar.open = bar.open ?? 0;
     bar.high = bar.high ?? 0;
     bar.low = bar.low ?? 0;
-    bar.close = bar.close;
-    bar.volume = bar.volume;
+    bar.close = bar.close ?? 0;
+    bar.volume = bar.volume ?? 0;
 
     return bar;
   }
