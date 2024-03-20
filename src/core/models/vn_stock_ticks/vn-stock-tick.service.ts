@@ -58,8 +58,8 @@ export class VnStockTickService {
       this.getTimePeriodByResolution(resolution);
     const ticks = await this.vnStockTickRepository.getDataByResolution(
       symbolCode,
-      moment(fromTime).utc().format('YYYY-MM-DD H:mm:ss'),
-      moment(toTime).utc().format('YYYY-MM-DD H:mm:ss'),
+      fromTime,
+      toTime,
     );
 
     return { ticks: ticks, time: time };

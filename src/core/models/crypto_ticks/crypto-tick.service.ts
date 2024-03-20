@@ -47,8 +47,8 @@ export class CryptoTickService {
       this.getTimePeriodByResolution(resolution);
     const ticks = await this.cryptoTickRepository.getDataByResolution(
       symbolCode,
-      fromTime,
-      toTime,
+      moment(fromTime).utc().format('YYYY-MM-DD H:mm:ss'),
+      moment(toTime).utc().format('YYYY-MM-DD H:mm:ss'),
     );
 
     return { ticks: ticks, time: time };
