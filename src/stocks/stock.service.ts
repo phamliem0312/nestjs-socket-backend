@@ -1,12 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import FClientConfig from './stock.config';
+import { EventGateway } from 'src/events/event.gateway';
 
 @Injectable()
 export class StockService {
   private axiosIntance: AxiosInstance;
   private baseUrl: string;
-  constructor() {
+  constructor(private readonly eventGateway: EventGateway) {
     this.baseUrl = FClientConfig.baseUrl;
 
     this.axiosIntance = axios.create({
@@ -70,6 +71,18 @@ export class StockService {
       success: response.data.success ? true : false,
       data: response.data.data,
     };
+  }
+
+  handleWebhookData(data: {
+    symbol: string;
+    open: number;
+    close: number;
+    high: number;
+    low: number;
+    volume: number;
+    date: number;
+  }) {
+    this.eventGateway.emitRoomData(data.symbol, data);
   }
 
   async getRequest(endpoint: string, options: object) {

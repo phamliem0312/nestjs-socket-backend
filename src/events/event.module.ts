@@ -7,5 +7,6 @@ import { EventService } from './event.service';
 @Module({
   imports: [VnStockTickModule, CryptoTickModule, CacheModule.register()],
   providers: [EventGateway, EventService],
+  exports: [EventGateway],
 })
 export class EventModule {}

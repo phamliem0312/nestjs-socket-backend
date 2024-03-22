@@ -11,6 +11,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 @WebSocketGateway(3006)
 export class EventGateway {
   @WebSocketServer() server: Server;
+  private readonly cryptoExchanges = ['binance'];
   private logger: Logger = new Logger('EventGateway');
   private readonly intervalTime: number = 1000;
   constructor(
@@ -45,15 +46,16 @@ export class EventGateway {
     const exchange = eventData.exchange ?? null;
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
-    const room = eventData.subscriberUID;
+    const room = this.cryptoExchanges.includes(exchange)
+      ? eventData.subscriberUID
+      : eventData.symbol;
 
     client.join(room);
 
     const cachedData = await this.cacheManager.get(room);
 
-    if (!cachedData) {
+    if (!cachedData && this.cryptoExchanges.includes(exchange)) {
       this.initIntervalTimer(room, {
-        exchange,
         symbolCode,
         resolution,
       });
@@ -73,14 +75,12 @@ export class EventGateway {
   initIntervalTimer(
     room: string,
     params: {
-      exchange: string;
       symbolCode: string;
       resolution: string;
     },
   ) {
     setInterval(async () => {
       const data = await this.eventService.getSocketData(
-        params.exchange,
         params.symbolCode,
         params.resolution,
       );
@@ -89,8 +89,12 @@ export class EventGateway {
       }
       this.cacheManager.set(room, true);
 
-      this.server.to(room).emit('message', data);
+      this.emitRoomData(room, data);
     }, this.intervalTime);
+  }
+
+  emitRoomData(room: string, data: object) {
+    this.server.to(room).emit('message', data);
   }
 
   leaveAllRooms(client: Socket, rooms) {

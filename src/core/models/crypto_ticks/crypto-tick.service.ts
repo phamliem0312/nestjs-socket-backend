@@ -98,7 +98,7 @@ export class CryptoTickService {
         .format('YYYY-MM-DD 00:00:00');
       return {
         fromTime: beginDate,
-        toTime: time.format('YYYY-MM-DD 23:59:59'),
+        toTime: moment().format('YYYY-MM-DD 23:59:59'),
         time: currentDate,
       };
     }
@@ -156,11 +156,15 @@ export class CryptoTickService {
       return entityMapping['1h'];
     }
 
-    if (resolution.includes('d')) {
+    if (resolution.includes('4h')) {
+      return entityMapping['4h'];
+    }
+
+    if (resolution.includes('D')) {
       return entityMapping['d'];
     }
 
-    if (resolution.includes('w')) {
+    if (resolution.includes('W')) {
       return entityMapping['w'];
     }
 
