@@ -51,10 +51,7 @@ export class EventGateway {
 
     const cachedData = await this.cacheManager.get(room);
 
-    if (cachedData) {
-      client.emit('message', cachedData);
-    } else {
-      this.cacheManager.set(room, {});
+    if (!cachedData) {
       this.initIntervalTimer(room, {
         exchange,
         symbolCode,
@@ -90,7 +87,7 @@ export class EventGateway {
       if (data.open === 0) {
         return;
       }
-      this.cacheManager.set(room, data);
+      this.cacheManager.set(room, true);
 
       this.server.to(room).emit('message', data);
     }, this.intervalTime);
