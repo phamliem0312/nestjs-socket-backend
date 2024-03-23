@@ -8,7 +8,6 @@ export class CryptoTickRepository extends ModelRepository {
   async getDataByEntity(
     symbolCode: string,
     from: string,
-    to: string,
     entity: string,
   ): Promise<any> {
     const entityName = entity ? entity : this.entityName;
@@ -17,7 +16,6 @@ export class CryptoTickRepository extends ModelRepository {
       .from(entityName)
       .where('symbol', symbolCode)
       .andWhere('date', '>=', from)
-      .andWhere('date', '<=', to)
       .orderBy('date', 'asc');
 
     return result ? result : [];
