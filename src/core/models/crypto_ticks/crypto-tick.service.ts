@@ -48,8 +48,8 @@ export class CryptoTickService {
     const entityName = this.getEntityNameByResolution(resolution);
     const ticks = await this.cryptoTickRepository.getDataByEntity(
       symbolCode,
-      moment(fromTime).utc().format('YYYY-MM-DD H:mm:ss'),
-      moment(toTime).utc().format('YYYY-MM-DD H:mm:ss'),
+      moment(fromTime).utc().format('YYYY-MM-DD hh:mm:ss'),
+      moment(toTime).utc().format('YYYY-MM-DD hh:mm:ss'),
       entityName,
     );
 
@@ -67,7 +67,7 @@ export class CryptoTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD H:mm:ss`),
+        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
@@ -98,7 +98,7 @@ export class CryptoTickService {
         .format('YYYY-MM-DD 00:00:00');
       return {
         fromTime: beginDate,
-        toTime: time.format('YYYY-MM-DD 23:59:59'),
+        toTime: moment().format('YYYY-MM-DD 23:59:59'),
         time: currentDate,
       };
     }
@@ -127,7 +127,7 @@ export class CryptoTickService {
       fromTime: moment().format(
         `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
       ),
-      toTime: moment().format('YYYY-MM-DD H:mm:ss'),
+      toTime: moment().format('YYYY-MM-DD hh:mm:ss'),
       time: moment().format(
         `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
       ),
@@ -156,11 +156,11 @@ export class CryptoTickService {
       return entityMapping['1h'];
     }
 
-    if (resolution.includes('d')) {
+    if (resolution.includes('D')) {
       return entityMapping['d'];
     }
 
-    if (resolution.includes('w')) {
+    if (resolution.includes('W')) {
       return entityMapping['w'];
     }
 

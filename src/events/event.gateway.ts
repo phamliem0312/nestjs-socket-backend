@@ -7,6 +7,7 @@ import { Server, Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import * as moment from 'moment';
 
 @WebSocketGateway(3006)
 export class EventGateway {
@@ -78,16 +79,19 @@ export class EventGateway {
       resolution: string;
     },
   ) {
+    this.cacheManager.set(room, {
+      lastTime: moment().format(`YYYY-MM-DD hh:mm:ss`),
+    });
     setInterval(async () => {
       const data = await this.eventService.getSocketData(
         params.exchange,
         params.symbolCode,
         params.resolution,
       );
+      this.cacheManager.set(room, true);
       if (data.open === 0) {
         return;
       }
-      this.cacheManager.set(room, true);
 
       this.server.to(room).emit('message', data);
     }, this.intervalTime);

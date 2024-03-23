@@ -6,9 +6,9 @@ export class VnStockTickService {
   constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const barData = await this.getBarByResolution(symbolCode, resolution);
+    const bar = await this.getBarByResolution(symbolCode, resolution);
 
-    return barData;
+    return bar;
   }
 
   async getBarByResolution(
@@ -54,12 +54,11 @@ export class VnStockTickService {
   }
 
   async getTicks(symbolCode: string, resolution: string) {
-    const { fromTime, toTime, time } =
-      this.getTimePeriodByResolution(resolution);
+    const { time } = this.getTimePeriodByResolution(resolution);
+    const from = moment().subtract(1000, 'ms').format(`YYYY-MM-DD hh:mm:ss`);
     const ticks = await this.vnStockTickRepository.getDataByResolution(
       symbolCode,
-      fromTime,
-      toTime,
+      from,
     );
 
     return { ticks: ticks, time: time };
@@ -76,7 +75,7 @@ export class VnStockTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD H:mm:ss`),
+        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
@@ -136,7 +135,7 @@ export class VnStockTickService {
       fromTime: moment().format(
         `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
       ),
-      toTime: moment().format('YYYY-MM-DD H:mm:ss'),
+      toTime: moment().format('YYYY-MM-DD hh:mm:ss'),
       time: moment().format(
         `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
       ),
