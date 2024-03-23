@@ -46,9 +46,7 @@ export class EventGateway {
     const exchange = eventData.exchange ?? null;
     const symbolCode = eventData.symbol ?? null;
     const resolution = eventData.resolution ?? null;
-    const room = this.cryptoExchanges.includes(exchange)
-      ? eventData.subscriberUID
-      : eventData.symbol;
+    const room = eventData.subscriberUID;
 
     client.join(room);
 

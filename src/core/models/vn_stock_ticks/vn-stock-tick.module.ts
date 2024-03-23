@@ -3,10 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { VnStockTickRepository } from './vn-stock-tick.repository';
 import { VnStockTickService } from './vn-stock-tick.service';
 import { VnStockTickController } from './vn-stock-tick.controller';
+import { EventModule } from 'src/events/event.module';
 import moment from 'moment';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, EventModule],
   controllers: [VnStockTickController],
   providers: [
     VnStockTickRepository,

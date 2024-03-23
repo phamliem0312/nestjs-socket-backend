@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { Request } from 'express';
 
@@ -64,17 +58,5 @@ export class StockController {
       exchange,
       symbolType,
     });
-  }
-
-  @Post('/webhook')
-  async postWebhookData(@Req() req: Request): Promise<any> {
-    const webhookData = req.body;
-
-    if (webhookData) {
-      throw new BadRequestException('Missing parameter!');
-    }
-    this.stockService.handleWebhookData(webhookData);
-
-    return true;
   }
 }

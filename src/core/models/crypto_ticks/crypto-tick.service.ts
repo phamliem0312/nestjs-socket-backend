@@ -43,13 +43,11 @@ export class CryptoTickService {
   }
 
   async getTicks(symbolCode: string, resolution: string) {
-    const { fromTime, toTime, time } =
-      this.getTimePeriodByResolution(resolution);
+    const { time } = this.getTimePeriodByResolution(resolution);
     const entityName = this.getEntityNameByResolution(resolution);
     const ticks = await this.cryptoTickRepository.getDataByEntity(
       symbolCode,
-      moment(fromTime).utc().format('YYYY-MM-DD H:mm:ss'),
-      moment(toTime).utc().format('YYYY-MM-DD H:mm:ss'),
+      moment().subtract(1000, 'ms').utc().format('YYYY-MM-DD hh:mm:ss'),
       entityName,
     );
 

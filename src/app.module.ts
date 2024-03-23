@@ -19,11 +19,11 @@ import config from './core/databases/config';
     KnexModule.forRoot({
       config: config[process.env.NODE_ENV ?? 'development'],
     }),
+    EventModule,
     StockModule,
     VnIntradayModule,
     VnStockTickModule,
     CryptoTickModule,
-    EventModule,
     CacheModule.register({
       isGlobal: true,
     }),

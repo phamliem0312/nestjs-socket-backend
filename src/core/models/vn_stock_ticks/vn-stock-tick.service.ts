@@ -1,14 +1,53 @@
 import { Injectable } from '@nestjs/common';
 import { VnStockTickRepository } from './vn-stock-tick.repository';
+import { EventGateway } from 'src/events/event.gateway';
 import * as moment from 'moment';
 @Injectable()
 export class VnStockTickService {
-  constructor(private readonly vnStockTickRepository: VnStockTickRepository) {}
+  private readonly resolutions = ['1', '5', '15', '30', '60', '1D', '1W', '1M'];
+  constructor(
+    private readonly vnStockTickRepository: VnStockTickRepository,
+    private readonly eventGateway: EventGateway,
+  ) {}
 
   async getSocketData(symbolCode: string, resolution: string): Promise<any> {
     const barData = await this.getBarByResolution(symbolCode, resolution);
 
     return barData;
+  }
+
+  handleWebhookData(data: {
+    symbol: string;
+    open: number;
+    close: number;
+    high: number;
+    low: number;
+    volume: number;
+    time: string;
+  }) {
+    const symbol = data.symbol;
+    const open = data.open / 1000;
+    const close = data.close / 1000;
+    const high = data.high / 1000;
+    const low = data.low / 1000;
+    const volume = data.volume;
+
+    this.resolutions.forEach((resolution) => {
+      const { time } = this.getTimePeriodByResolution(resolution);
+      const datetime = time;
+      const timestamp = parseInt(moment(time).format('X')) * 1000;
+      const room = data.symbol + '_#_' + resolution;
+      this.eventGateway.emitRoomData(room, {
+        symbol,
+        open,
+        close,
+        high,
+        low,
+        volume,
+        datetime,
+        time: timestamp,
+      });
+    });
   }
 
   async getBarByResolution(
@@ -76,7 +115,7 @@ export class VnStockTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD H:mm:ss`),
+        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
@@ -115,7 +154,7 @@ export class VnStockTickService {
     if (resolution.includes('M')) {
       const time = moment();
       const period = parseInt(resolution[0]);
-      const beginMonth = Math.floor((time.months() + 1) / period) * period;
+      const beginMonth = Math.floor((time.month() + 1) / period) * period;
       const fromTime = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 09:00:00`,
       );
@@ -131,14 +170,16 @@ export class VnStockTickService {
 
     const currentMinute = moment().minutes();
     const resolutionNumber = parseInt(resolution);
+    const minuteTime =
+      Math.floor(currentMinute / resolutionNumber) * resolutionNumber;
 
     return {
       fromTime: moment().format(
-        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+        `YYYY-MM-DD hh:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
       ),
-      toTime: moment().format('YYYY-MM-DD H:mm:ss'),
+      toTime: moment().format('YYYY-MM-DD hh:mm:ss'),
       time: moment().format(
-        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+        `YYYY-MM-DD hh:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
       ),
     };
   }
