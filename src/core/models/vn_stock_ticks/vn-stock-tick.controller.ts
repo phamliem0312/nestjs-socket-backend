@@ -15,6 +15,9 @@ export class VnStockTickController {
     }
     this.vnStockTickService.handleWebhookData(webhookData);
 
-    return true;
+    return {
+      success: true,
+      data: {},
+    };
   }
 }
