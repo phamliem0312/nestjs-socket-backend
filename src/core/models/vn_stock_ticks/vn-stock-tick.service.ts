@@ -26,10 +26,10 @@ export class VnStockTickService {
     time: string;
   }) {
     const symbol = data.symbol;
-    const open = data.open / 1000;
-    const close = data.close / 1000;
-    const high = data.high / 1000;
-    const low = data.low / 1000;
+    const open = data.open;
+    const close = data.close;
+    const high = data.high;
+    const low = data.low;
     const volume = data.volume;
 
     this.resolutions.forEach((resolution) => {
