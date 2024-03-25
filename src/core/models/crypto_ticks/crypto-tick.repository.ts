@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CryptoTickRepository extends ModelRepository {
-  entityName: string = 'crypto_tick_s1s';
+  entityName: string = 'crypto_s1s';
 
   async getDataByEntity(
     symbolCode: string,
