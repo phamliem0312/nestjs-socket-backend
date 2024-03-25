@@ -3,5 +3,10 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class VnStockTickRepository extends ModelRepository {
-  entityName: string = 'vnstock_ticks';
+  entityName: string = 'vnstock_event';
+
+  async insertOne(data: object) {
+    const isInserted = await this.knex(this.entityName).insert(data);
+    return isInserted;
+  }
 }

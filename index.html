@@ -69,16 +69,16 @@
   <script src="./public/socket.io.js"></script>
 
   <script>
-    const socket = io('https://wss.mindthegapstudio.com:1006', {
-      transports: ['websocket']
-    });
-    // const socket = io('http://127.0.0.1:3006', {
+    // const socket = io('https://wss.mindthegapstudio.com:1006', {
     //   transports: ['websocket']
     // });
+    const socket = io('http://127.0.0.1:3006', {
+      transports: ['websocket']
+    });
 
     socket.on('connected', function (msg) {
       //socket.emit('subscribe', { subscriberUID: "BTCUSDT_#_1D", exchange: "binance", symbol:"BTCUSDT", resolution: '1D' });
-      socket.emit('subscribe', { subscriberUID: "VNIND_#_1", exchange: "horse", symbol:"VNIND", resolution: '1' });
+      socket.emit('subscribe', { subscriberUID: "HPG_#_1", exchange: "horse", symbol:"HPG", resolution: '1' });
     });
 
     socket.on('message', function (msg) {

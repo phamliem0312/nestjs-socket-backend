@@ -1,9 +1,10 @@
 const axios = require('axios');
 const moment = require('moment');
-
+//const url = 'http://wss.mindthegapstudio.com:3000/api/v1/VnStock/webhook';
+const url = 'http://localhost:3000/api/v1/VnStock/webhook';
 setInterval(() => {
   axios
-    .post('http://wss.mindthegapstudio.com:3000/api/v1/VnStock/webhook', {
+    .post(url, {
       symbol: 'HPG',
       open: 30400,
       close: 32600,
