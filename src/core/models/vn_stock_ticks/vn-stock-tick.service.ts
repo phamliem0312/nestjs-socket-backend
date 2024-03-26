@@ -40,6 +40,7 @@ export class VnStockTickService {
       low,
       volume,
       date: data.time,
+      createdAt: moment().format('YYYY-MM-DD hh:mm:ss'),
     });
 
     if (isInserted) {
