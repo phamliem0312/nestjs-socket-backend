@@ -16,7 +16,7 @@ export class VnStockTickService {
     return barData;
   }
 
-  async handleWebhookData(data: {
+  handleWebhookData(data: {
     symbol: string;
     open: number;
     close: number;
@@ -32,16 +32,6 @@ export class VnStockTickService {
     const low = data.low;
     const volume = data.volume;
 
-    // const isInserted = await this.vnStockTickRepository.insertOne({
-    //   symbol,
-    //   open,
-    //   close,
-    //   high,
-    //   low,
-    //   volume,
-    //   date: data.time,
-    //   createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
-    // });
     this.resolutions.forEach((resolution) => {
       const { time } = this.getTimePeriodByResolution(resolution);
       const datetime = time;

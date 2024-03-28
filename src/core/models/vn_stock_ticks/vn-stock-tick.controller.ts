@@ -13,11 +13,11 @@ export class VnStockTickController {
     if (!webhookData) {
       throw new BadRequestException('Missing parameter!');
     }
-    const handleWebhook =
-      await this.vnStockTickService.handleWebhookData(webhookData);
+
+    this.vnStockTickService.handleWebhookData(webhookData);
 
     return {
-      success: handleWebhook ? true : false,
+      success: true,
       data: {},
     };
   }
