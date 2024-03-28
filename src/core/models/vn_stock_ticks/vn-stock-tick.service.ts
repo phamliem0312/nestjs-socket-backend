@@ -32,39 +32,34 @@ export class VnStockTickService {
     const low = data.low;
     const volume = data.volume;
 
-    const isInserted = await this.vnStockTickRepository.insertOne({
-      symbol,
-      open,
-      close,
-      high,
-      low,
-      volume,
-      date: data.time,
-      createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
+    // const isInserted = await this.vnStockTickRepository.insertOne({
+    //   symbol,
+    //   open,
+    //   close,
+    //   high,
+    //   low,
+    //   volume,
+    //   date: data.time,
+    //   createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
+    // });
+    this.resolutions.forEach((resolution) => {
+      const { time } = this.getTimePeriodByResolution(resolution);
+      const datetime = time;
+      const timestamp = parseInt(moment(time).format('X')) * 1000;
+      const room = data.symbol + '_#_' + resolution;
+      this.eventGateway.emitRoomData(room, {
+        symbol,
+        open,
+        close,
+        high,
+        low,
+        volume,
+        datetime,
+        time: timestamp,
+      });
     });
 
-    if (isInserted) {
-      this.resolutions.forEach((resolution) => {
-        const { time } = this.getTimePeriodByResolution(resolution);
-        const datetime = time;
-        const timestamp = parseInt(moment(time).format('X')) * 1000;
-        const room = data.symbol + '_#_' + resolution;
-        this.eventGateway.emitRoomData(room, {
-          symbol,
-          open,
-          close,
-          high,
-          low,
-          volume,
-          datetime,
-          time: timestamp,
-        });
-      });
-
-      return true;
-    }
-
-    return false;
+    return true;
   }
 
   async getBarByResolution(
