@@ -1,13 +1,13 @@
 import { Knex } from 'knex';
 
 const config: { [key: string]: Knex.Config } = {
-  development: {
+  production: {
     client: 'mysql2',
     connection: {
-      database: 'ckvn',
-      user: 'fclientuser',
-      password: '123456a@',
-      host: '103.179.189.71',
+      database: 'socketdb',
+      user: 'root',
+      password: '',
+      host: '127.0.0.1',
     },
     pool: {
       min: 2,
