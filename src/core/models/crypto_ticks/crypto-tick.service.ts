@@ -151,6 +151,10 @@ export class CryptoTickService {
       return entityMapping['1h'];
     }
 
+    if (resolution.includes('240')) {
+      return entityMapping['4h'];
+    }
+
     if (resolution.includes('4h')) {
       return entityMapping['4h'];
     }
