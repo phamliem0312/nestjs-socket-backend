@@ -43,20 +43,23 @@ export class CryptoTickService {
   }
 
   async getTicks(symbolCode: string, resolution: string) {
-    const { time } = this.getTimePeriodByResolution(resolution);
+    const { fromTime, time } = this.getTimePeriodByResolution(resolution);
     const entityName = this.getEntityNameByResolution(resolution);
     const ticks = await this.cryptoTickRepository.getDataByEntity(
       symbolCode,
-      moment().subtract(1000, 'ms').utc().format('YYYY-MM-DD hh:mm:ss'),
+      fromTime,
       entityName,
     );
 
-    return { ticks: ticks, time: time };
+    return {
+      ticks: ticks,
+      time: time,
+    };
   }
 
   getTimePeriodByResolution(resolution: string) {
     if (resolution.includes('h')) {
-      const time = moment();
+      const time = moment().utc();
       const currentHour = moment().hours();
       const period = parseInt(resolution[0]);
       const hour =
@@ -65,13 +68,12 @@ export class CryptoTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD H:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
 
     if (resolution.includes('D')) {
-      const time = moment();
+      const time = moment().utc();
       const period = parseInt(resolution[0]);
       const currentDay = time.date();
       const beginDay =
@@ -80,13 +82,12 @@ export class CryptoTickService {
           : Math.floor((currentDay - 1) / period) * period + 1;
       return {
         fromTime: time.format(`YYYY-MM-${beginDay} 00:00:00`),
-        toTime: time.format('YYYY-MM-DD 23:59:59'),
         time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
       };
     }
 
     if (resolution.includes('W')) {
-      const time = moment().isoWeekday(1);
+      const time = moment().utc().isoWeekday(1);
       const period = parseInt(resolution[0]);
       const beginDate = time
         .weekday(8 - period * 7)
@@ -96,13 +97,12 @@ export class CryptoTickService {
         .format('YYYY-MM-DD 00:00:00');
       return {
         fromTime: beginDate,
-        toTime: moment().format('YYYY-MM-DD 23:59:59'),
         time: currentDate,
       };
     }
 
     if (resolution.includes('M')) {
-      const time = moment();
+      const time = moment().utc();
       const period = parseInt(resolution[0]);
       const beginMonth = Math.floor((time.months() + 1) / period) * period;
       const fromTime = time.format(
@@ -113,21 +113,22 @@ export class CryptoTickService {
       );
       return {
         fromTime: fromTime,
-        toTime: time.format('YYYY-MM-DD 23:59:59'),
         time: currentDate,
       };
     }
 
-    const currentMinute = moment().minutes();
+    const time = moment().utc();
+    const currentMinute = time.minutes();
     const resolutionNumber = parseInt(resolution);
+    const minuteTime =
+      Math.floor(currentMinute / resolutionNumber) * resolutionNumber;
 
     return {
-      fromTime: moment().format(
-        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+      fromTime: time.format(
+        `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
       ),
-      toTime: moment().format('YYYY-MM-DD H:mm:ss'),
-      time: moment().format(
-        `YYYY-MM-DD H:${Math.floor(currentMinute / resolutionNumber) * resolutionNumber}:00`,
+      time: time.format(
+        `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
       ),
     };
   }
@@ -135,7 +136,7 @@ export class CryptoTickService {
   getEntityNameByResolution(resolution: string) {
     const entityMapping = {
       s: 'crypto_s1s',
-      m: 'crypto_m15s',
+      '15': 'crypto_m15s',
       '1h': 'crypto_h1s',
       '4h': 'crypto_h4s',
       d: 'crypto_d1s',
@@ -146,12 +147,12 @@ export class CryptoTickService {
       return entityMapping['s'];
     }
 
-    if (resolution.includes('m')) {
-      return entityMapping['m'];
+    if (resolution.includes('60')) {
+      return entityMapping['1h'];
     }
 
-    if (resolution.includes('1h')) {
-      return entityMapping['1h'];
+    if (resolution.includes('240')) {
+      return entityMapping['4h'];
     }
 
     if (resolution.includes('4h')) {
@@ -166,6 +167,6 @@ export class CryptoTickService {
       return entityMapping['w'];
     }
 
-    return null;
+    return entityMapping[resolution] ?? null;
   }
 }
