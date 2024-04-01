@@ -136,6 +136,7 @@ export class CryptoTickService {
   getEntityNameByResolution(resolution: string) {
     const entityMapping = {
       s: 'crypto_s1s',
+      '1': 'crypto_m1s',
       '15': 'crypto_m15s',
       '1h': 'crypto_h1s',
       '4h': 'crypto_h4s',
@@ -145,6 +146,14 @@ export class CryptoTickService {
 
     if (resolution.includes('s')) {
       return entityMapping['s'];
+    }
+
+    if (resolution.includes('1')) {
+      return entityMapping['1'];
+    }
+
+    if (resolution.includes('15')) {
+      return entityMapping['15'];
     }
 
     if (resolution.includes('60')) {
