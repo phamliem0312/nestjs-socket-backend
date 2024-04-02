@@ -67,8 +67,36 @@ export class CryptoTickService {
           ? '0' + Math.floor(currentHour / period) * period
           : Math.floor(currentHour / period) * period;
       return {
-        fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
+      };
+    }
+
+    if (resolution.includes('60')) {
+      const time = moment();
+      const currentHour = moment().hours();
+      const period = 1;
+      const hour =
+        Math.floor(currentHour / period) * period < 10
+          ? '0' + Math.floor(currentHour / period) * period
+          : Math.floor(currentHour / period) * period;
+      return {
+        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
+      };
+    }
+
+    if (resolution.includes('240')) {
+      const time = moment();
+      const currentHour = moment().hours();
+      const period = 4;
+      const hour =
+        Math.floor(currentHour / period) * period < 10
+          ? '0' + Math.floor(currentHour / period) * period
+          : Math.floor(currentHour / period) * period;
+      return {
+        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
 
@@ -81,18 +109,19 @@ export class CryptoTickService {
           ? '0' + (Math.floor((currentDay - 1) / period) * period + 1)
           : Math.floor((currentDay - 1) / period) * period + 1;
       return {
-        fromTime: time.format(`YYYY-MM-${beginDay} 00:00:00`),
         time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-${beginDay} 00:00:00`),
       };
     }
 
     if (resolution.includes('W')) {
-      const time = moment().utc().isoWeekday(1);
+      const time = moment().isoWeekday(1);
       const period = parseInt(resolution[0]);
-      const beginDate = time
+      const currentDate = time
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
-      const currentDate = time
+      const beginDate = time
+        .utc()
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
       return {
@@ -105,12 +134,14 @@ export class CryptoTickService {
       const time = moment();
       const period = parseInt(resolution[0]);
       const beginMonth = Math.floor((time.months() + 1) / period) * period;
-      const fromTime = time.format(
-        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
-      );
       const currentDate = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
       );
+      const fromTime = time
+        .utc()
+        .format(
+          `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
+        );
       return {
         fromTime: fromTime,
         time: currentDate,
@@ -124,12 +155,14 @@ export class CryptoTickService {
       Math.floor(currentMinute / resolutionNumber) * resolutionNumber;
 
     return {
-      fromTime: time.format(
-        `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
-      ),
       time: time.format(
         `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
       ),
+      fromTime: time
+        .utc()
+        .format(
+          `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
+        ),
     };
   }
 

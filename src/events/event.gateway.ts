@@ -86,7 +86,6 @@ export class EventGateway {
         return;
       }
       this.cacheManager.set(room, true);
-
       this.emitRoomData(room, data);
     }, this.intervalTime);
   }
