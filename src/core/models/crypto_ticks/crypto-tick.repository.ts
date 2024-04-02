@@ -12,7 +12,7 @@ export class CryptoTickRepository extends ModelRepository {
   ): Promise<any> {
     const entityName = entity ? entity : this.entityName;
     const result = await this.knex
-      .select('symbol', 'open', 'close', 'high', 'low', 'volume')
+      .select('symbol', 'open', 'close', 'high', 'low', 'volume', 'date')
       .from(entityName)
       .where('symbol', symbolCode)
       .andWhere('date', '>=', from)
