@@ -26,13 +26,15 @@ export class CryptoTickService {
         high: 0,
         low: 0,
         volume: 0,
+        time: parseInt(moment(time).format('X')) * 1000,
+        datetime: time,
       };
     }
 
     const bar = ticks[tickTotal - 1];
 
-    bar.datetime = moment.utc(bar.date).local().format('YYYY-MM-DD HH:mm:ss');;
-    bar.time = parseInt(moment(bar.datetime).format('X')) * 1000;
+    bar.datetime = time;
+    bar.time = parseInt(moment(time).format('X')) * 1000;
     bar.open = bar.open ?? 0;
     bar.high = bar.high ?? 0;
     bar.low = bar.low ?? 0;
@@ -54,6 +56,7 @@ export class CryptoTickService {
     return {
       ticks: ticks,
       time: time,
+      fromTime: fromTime,
     };
   }
 
