@@ -59,7 +59,7 @@ export class CryptoTickService {
 
   getTimePeriodByResolution(resolution: string) {
     if (resolution.includes('h')) {
-      const time = moment().utc();
+      const time = moment();
       const currentHour = moment().hours();
       const period = parseInt(resolution[0]);
       const hour =
@@ -73,7 +73,7 @@ export class CryptoTickService {
     }
 
     if (resolution.includes('D')) {
-      const time = moment().utc();
+      const time = moment();
       const period = parseInt(resolution[0]);
       const currentDay = time.date();
       const beginDay =
@@ -102,7 +102,7 @@ export class CryptoTickService {
     }
 
     if (resolution.includes('M')) {
-      const time = moment().utc();
+      const time = moment();
       const period = parseInt(resolution[0]);
       const beginMonth = Math.floor((time.months() + 1) / period) * period;
       const fromTime = time.format(
@@ -117,7 +117,7 @@ export class CryptoTickService {
       };
     }
 
-    const time = moment().utc();
+    const time = moment();
     const currentMinute = time.minutes();
     const resolutionNumber = parseInt(resolution);
     const minuteTime =
