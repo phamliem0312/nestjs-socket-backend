@@ -31,7 +31,7 @@ export class CryptoTickService {
 
     const bar = ticks[tickTotal - 1];
 
-    bar.datetime = bar.date ?? time;
+    bar.datetime = moment.utc(bar.date).local().format('YYYY-MM-DD HH:mm:ss');;
     bar.time = parseInt(moment(bar.datetime).format('X')) * 1000;
     bar.open = bar.open ?? 0;
     bar.high = bar.high ?? 0;
