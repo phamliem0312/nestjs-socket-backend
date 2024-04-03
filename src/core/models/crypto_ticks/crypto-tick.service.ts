@@ -28,6 +28,7 @@ export class CryptoTickService {
         volume: 0,
         time: parseInt(moment(time).format('X')) * 1000,
         datetime: time,
+        resolution,
       };
     }
 
@@ -40,6 +41,7 @@ export class CryptoTickService {
     bar.low = bar.low ?? 0;
     bar.close = bar.close ?? 0;
     bar.volume = bar.volume ?? 0;
+    bar.resolution = resolution;
 
     return bar;
   }
