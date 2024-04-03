@@ -4,7 +4,18 @@ import { EventGateway } from 'src/events/event.gateway';
 import * as moment from 'moment';
 @Injectable()
 export class VnStockTickService {
-  private readonly resolutions = ['1', '5', '15', '30', '60', '1D', '1W', '1M'];
+  private readonly resolutions = [
+    '1',
+    '5',
+    '10',
+    '15',
+    '30',
+    '60',
+    '240',
+    '1D',
+    '1W',
+    '1M',
+  ];
   constructor(
     private readonly vnStockTickRepository: VnStockTickRepository,
     private readonly eventGateway: EventGateway,
@@ -107,10 +118,25 @@ export class VnStockTickService {
   }
 
   getTimePeriodByResolution(resolution: string) {
-    if (resolution.includes('h')) {
+    if (resolution.includes('60')) {
       const time = moment();
       const currentHour = moment().hours();
-      const period = parseInt(resolution[0]);
+      const period = 1;
+      const hour =
+        Math.floor(currentHour / period) * period < 10
+          ? '0' + Math.floor(currentHour / period) * period
+          : Math.floor(currentHour / period) * period;
+      return {
+        fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
+        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+      };
+    }
+
+    if (resolution.includes('240')) {
+      const time = moment();
+      const currentHour = moment().hours();
+      const period = 4;
       const hour =
         Math.floor(currentHour / period) * period < 10
           ? '0' + Math.floor(currentHour / period) * period
