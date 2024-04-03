@@ -85,9 +85,10 @@ export class CryptoTickService {
         Math.floor(currentHour / period) * period < 10
           ? '0' + Math.floor(currentHour / period) * period
           : Math.floor(currentHour / period) * period;
+      const currentTime = time.format(`YYYY-MM-DD ${hour}:00:00`);
       return {
-        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
+        time: currentTime,
+        fromTime: moment(currentTime).utc().format(`YYYY-MM-DD HH:mm:ss`),
       };
     }
 
