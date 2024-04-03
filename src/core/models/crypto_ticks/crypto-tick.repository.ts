@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CryptoTickRepository extends ModelRepository {
-  entityName: string = 'crypto_s1s';
+  entityName: string = 'crypto_m1s';
 
   async getDataByEntity(
     symbolCode: string,
@@ -16,7 +16,7 @@ export class CryptoTickRepository extends ModelRepository {
       .from(entityName)
       .where('symbol', symbolCode)
       .andWhere('date', '>=', from)
-      .orderBy('date', 'desc')
+      .orderBy('date', 'asc')
       .limit(1)
       .offset(0);
 
