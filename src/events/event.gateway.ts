@@ -83,6 +83,9 @@ export class EventGateway {
         params.resolution,
       );
       this.cacheManager.set(room, true);
+      if (data.open === 0) {
+        return;
+      }
       this.emitRoomData(room, data);
     }, this.intervalTime);
   }

@@ -94,14 +94,19 @@ export class CryptoTickService {
     if (resolution.includes('240')) {
       const time = moment();
       const currentHour = moment().hours();
+      const currentUtcHour = moment().utc().hours();
       const period = 4;
       const hour =
         Math.floor(currentHour / period) * period < 10
           ? '0' + Math.floor(currentHour / period) * period
           : Math.floor(currentHour / period) * period;
+      const utcHour =
+        Math.floor(currentUtcHour / period) * period < 10
+          ? '0' + Math.floor(currentUtcHour / period) * period
+          : Math.floor(currentUtcHour / period) * period;
       return {
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-DD ${utcHour}:00:00`),
       };
     }
 
