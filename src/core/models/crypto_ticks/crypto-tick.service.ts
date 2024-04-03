@@ -63,20 +63,6 @@ export class CryptoTickService {
   }
 
   getTimePeriodByResolution(resolution: string) {
-    if (resolution.includes('h')) {
-      const time = moment();
-      const currentHour = moment().hours();
-      const period = parseInt(resolution[0]);
-      const hour =
-        Math.floor(currentHour / period) * period < 10
-          ? '0' + Math.floor(currentHour / period) * period
-          : Math.floor(currentHour / period) * period;
-      return {
-        time: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        fromTime: time.utc().format(`YYYY-MM-DD ${hour}:00:00`),
-      };
-    }
-
     if (resolution.includes('60')) {
       const time = moment();
       const currentHour = moment().hours();
@@ -114,14 +100,19 @@ export class CryptoTickService {
     if (resolution.includes('D')) {
       const time = moment();
       const period = parseInt(resolution[0]);
-      const currentDay = time.date();
+      const currentDay = moment().date();
+      const currentUtcDay = moment().utc().date();
       const beginDay =
         Math.floor((currentDay - 1) / period) * period + 1 < 10
           ? '0' + (Math.floor((currentDay - 1) / period) * period + 1)
           : Math.floor((currentDay - 1) / period) * period + 1;
+      const beginUtcDay =
+        Math.floor((currentUtcDay - 1) / period) * period + 1 < 10
+          ? '0' + (Math.floor((currentUtcDay - 1) / period) * period + 1)
+          : Math.floor((currentUtcDay - 1) / period) * period + 1;
       return {
         time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
-        fromTime: time.utc().format(`YYYY-MM-${beginDay} 00:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-${beginUtcDay} 00:00:00`),
       };
     }
 
@@ -179,7 +170,6 @@ export class CryptoTickService {
 
   getEntityNameByResolution(resolution: string) {
     const entityMapping = {
-      s: 'crypto_s1s',
       '1': 'crypto_m1s',
       '15': 'crypto_m15s',
       '1h': 'crypto_h1s',
@@ -188,27 +178,11 @@ export class CryptoTickService {
       w: 'crypto_w1s',
     };
 
-    if (resolution.includes('s')) {
-      return entityMapping['s'];
-    }
-
-    if (resolution.includes('1')) {
-      return entityMapping['1'];
-    }
-
-    if (resolution.includes('15')) {
-      return entityMapping['15'];
-    }
-
     if (resolution.includes('60')) {
       return entityMapping['1h'];
     }
 
     if (resolution.includes('240')) {
-      return entityMapping['4h'];
-    }
-
-    if (resolution.includes('4h')) {
       return entityMapping['4h'];
     }
 
