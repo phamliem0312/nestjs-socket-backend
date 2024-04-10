@@ -1,0 +1,31 @@
+# Install:
+- sudo apt update
+- sudo apt upgrade
+- Install Nodejs 18.x: 
+	cd ~
+	curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+	sudo bash nodesource_setup.sh
+	sudo apt install nodejs
+- Install Vim: sudo apt install vim
+- Install Mysql: 
+	sudo apt install mysql-server
+	sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf -> edit file: 127.0.0.1 =>  0.0.0.0
+	sudo systemctl restart mysql
+	sudo mysql
+	CREATE USER 'socketserver'@'localhost' IDENTIFIED BY '123456aA@';
+	GRANT ALL PRIVILEGES ON *.* TO 'socketserver'@'localhost' WITH GRANT OPTION;
+	CREATE USER 'socketserver'@'%' IDENTIFIED BY '123456aA@';
+	GRANT ALL PRIVILEGES ON *.* TO 'socketserver'@'%' WITH GRANT OPTION;
+- Install Git
+- Install pm2: npm i -g pm2
+- Clone code from github or gitlab
+- cd projects
+- Install package: npm i 
+- Build source code: npm run build
+- Run: pm2 start "npm run start:prod"
+
+# Info:
+	Server: 45.125.236.31 / root / nhuyanhuk / abc123456@
+	DB: 45.125.236.31/socketserver/123456aA@
+	Connect API: http://45.125.236.31:3000/api/v1/{endpoint}
+	Connect Socket: ws://45.125.236.31:3006/socket.io/?EIO=4&transport=websocket
