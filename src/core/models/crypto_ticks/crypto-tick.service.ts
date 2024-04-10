@@ -26,6 +26,9 @@ export class CryptoTickService {
         high: 0,
         low: 0,
         volume: 0,
+        time: parseInt(moment(time).format('X')) * 1000,
+        datetime: time,
+        resolution,
       };
     }
 
@@ -38,6 +41,7 @@ export class CryptoTickService {
     bar.low = bar.low ?? 0;
     bar.close = bar.close ?? 0;
     bar.volume = bar.volume ?? 0;
+    bar.resolution = resolution;
 
     return bar;
   }
@@ -54,45 +58,72 @@ export class CryptoTickService {
     return {
       ticks: ticks,
       time: time,
+      fromTime: fromTime,
     };
   }
 
   getTimePeriodByResolution(resolution: string) {
-    if (resolution.includes('h')) {
-      const time = moment().utc();
+    if (resolution.includes('60')) {
+      const time = moment();
       const currentHour = moment().hours();
-      const period = parseInt(resolution[0]);
+      const period = 1;
       const hour =
         Math.floor(currentHour / period) * period < 10
           ? '0' + Math.floor(currentHour / period) * period
           : Math.floor(currentHour / period) * period;
+      const currentTime = time.format(`YYYY-MM-DD ${hour}:00:00`);
       return {
-        fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        time: currentTime,
+        fromTime: moment(currentTime).utc().format(`YYYY-MM-DD HH:mm:ss`),
+      };
+    }
+
+    if (resolution.includes('240')) {
+      const time = moment();
+      const currentHour = moment().hours();
+      const currentUtcHour = moment().utc().hours();
+      const period = 4;
+      const hour =
+        Math.floor(currentHour / period) * period < 10
+          ? '0' + Math.floor(currentHour / period) * period
+          : Math.floor(currentHour / period) * period;
+      const utcHour =
+        Math.floor(currentUtcHour / period) * period < 10
+          ? '0' + Math.floor(currentUtcHour / period) * period
+          : Math.floor(currentUtcHour / period) * period;
+      return {
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-DD ${utcHour}:00:00`),
       };
     }
 
     if (resolution.includes('D')) {
-      const time = moment().utc();
+      const time = moment();
       const period = parseInt(resolution[0]);
-      const currentDay = time.date();
+      const currentDay = moment().date();
+      const currentUtcDay = moment().utc().date();
       const beginDay =
         Math.floor((currentDay - 1) / period) * period + 1 < 10
           ? '0' + (Math.floor((currentDay - 1) / period) * period + 1)
           : Math.floor((currentDay - 1) / period) * period + 1;
+      const beginUtcDay =
+        Math.floor((currentUtcDay - 1) / period) * period + 1 < 10
+          ? '0' + (Math.floor((currentUtcDay - 1) / period) * period + 1)
+          : Math.floor((currentUtcDay - 1) / period) * period + 1;
       return {
-        fromTime: time.format(`YYYY-MM-${beginDay} 00:00:00`),
         time: time.format(`YYYY-MM-${beginDay} 00:00:00`),
+        fromTime: time.utc().format(`YYYY-MM-${beginUtcDay} 00:00:00`),
       };
     }
 
     if (resolution.includes('W')) {
-      const time = moment().utc().isoWeekday(1);
+      const time = moment().isoWeekday(1);
       const period = parseInt(resolution[0]);
-      const beginDate = time
+      const currentDate = time
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
-      const currentDate = time
+      const beginDate = time
+        .utc()
         .weekday(8 - period * 7)
         .format('YYYY-MM-DD 00:00:00');
       return {
@@ -102,40 +133,44 @@ export class CryptoTickService {
     }
 
     if (resolution.includes('M')) {
-      const time = moment().utc();
+      const time = moment();
       const period = parseInt(resolution[0]);
       const beginMonth = Math.floor((time.months() + 1) / period) * period;
-      const fromTime = time.format(
-        `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
-      );
       const currentDate = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
       );
+      const fromTime = time
+        .utc()
+        .format(
+          `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
+        );
       return {
         fromTime: fromTime,
         time: currentDate,
       };
     }
 
-    const time = moment().utc();
+    const time = moment();
     const currentMinute = time.minutes();
     const resolutionNumber = parseInt(resolution);
     const minuteTime =
       Math.floor(currentMinute / resolutionNumber) * resolutionNumber;
 
     return {
-      fromTime: time.format(
-        `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
-      ),
       time: time.format(
         `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
       ),
+      fromTime: time
+        .utc()
+        .format(
+          `YYYY-MM-DD HH:${minuteTime > 9 ? minuteTime : '0' + minuteTime}:00`,
+        ),
     };
   }
 
   getEntityNameByResolution(resolution: string) {
     const entityMapping = {
-      s: 'crypto_s1s',
+      '1': 'crypto_m1s',
       '15': 'crypto_m15s',
       '1h': 'crypto_h1s',
       '4h': 'crypto_h4s',
@@ -143,19 +178,11 @@ export class CryptoTickService {
       w: 'crypto_w1s',
     };
 
-    if (resolution.includes('s')) {
-      return entityMapping['s'];
-    }
-
     if (resolution.includes('60')) {
       return entityMapping['1h'];
     }
 
     if (resolution.includes('240')) {
-      return entityMapping['4h'];
-    }
-
-    if (resolution.includes('4h')) {
       return entityMapping['4h'];
     }
 

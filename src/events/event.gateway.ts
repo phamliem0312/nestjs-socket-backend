@@ -82,11 +82,10 @@ export class EventGateway {
         params.symbolCode,
         params.resolution,
       );
+      this.cacheManager.set(room, true);
       if (data.open === 0) {
         return;
       }
-      this.cacheManager.set(room, true);
-
       this.emitRoomData(room, data);
     }, this.intervalTime);
   }
