@@ -128,7 +128,7 @@ export class VnStockTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
+        toTime: time.format(`YYYY-MM-DD HH:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
@@ -143,7 +143,7 @@ export class VnStockTickService {
           : Math.floor(currentHour / period) * period;
       return {
         fromTime: time.format(`YYYY-MM-DD ${hour}:00:00`),
-        toTime: time.format(`YYYY-MM-DD hh:mm:ss`),
+        toTime: time.format(`YYYY-MM-DD HH:mm:ss`),
         time: time.format(`YYYY-MM-DD ${hour}:00:00`),
       };
     }
@@ -203,11 +203,11 @@ export class VnStockTickService {
 
     return {
       fromTime: moment().format(
-        `YYYY-MM-DD hh:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
+        `YYYY-MM-DD HH:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
       ),
       toTime: moment().format('YYYY-MM-DD hh:mm:ss'),
       time: moment().format(
-        `YYYY-MM-DD hh:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
+        `YYYY-MM-DD HH:${minuteTime < 10 ? '0' + minuteTime : minuteTime}:00`,
       ),
     };
   }
