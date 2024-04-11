@@ -4,7 +4,7 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: 'mysql2',
     connection: {
-      database: 'ckvn',
+      database: 'wserver',
       user: 'socketserver',
       password: '123456aA@',
       host: '45.125.236.31',
