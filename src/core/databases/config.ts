@@ -4,14 +4,10 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: 'mysql2',
     connection: {
-      // database: 'wserver',
-      // user: 'socketserver',
-      // password: '123456aA@',
-      // host: '45.125.236.31',
-      database: 'ckvn',
-      user: 'root',
-      password: '',
-      host: 'localhost',
+      database: 'wserver',
+      user: 'socketserver',
+      password: '123456aA@',
+      host: '45.125.236.31',
     },
     pool: {
       min: 2,
