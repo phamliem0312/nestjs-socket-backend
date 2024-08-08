@@ -17,6 +17,7 @@ export class CryptoTickRepository extends ModelRepository {
       .from(entityName)
       .where('symbol', symbolCode)
       .andWhere('date', '>=', from)
+      .orderBy('symbol', 'asc')
       .orderBy('date', 'desc')
       .limit(1)
       .offset(0);

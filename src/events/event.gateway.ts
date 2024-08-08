@@ -120,23 +120,34 @@ export class EventGateway {
       );
       const configFile = fs.readFileSync(filePath, 'utf-8').toString();
       const symbolList = JSON.parse(configFile);
-      setInterval(async () => {
-        const data = {};
 
-        this.resolutions.forEach(async (resolution: string) => {
+      const initInterval = (symbolList: Array<any>) => {
+        const data = {};
+        const max = this.resolutions.length;
+
+        this.resolutions.forEach(async (resolution: string, i: number) => {
           const rawData =
             await this.eventService.getSocketDataByResolution(resolution);
           data[resolution] = [];
 
-          rawData.forEach(async (row: Tick) => {
+          rawData.forEach((row: Tick) => {
             if (symbolList.includes(row.symbol)) {
               data[resolution].push(row);
             }
           });
+
+          if (i === max - 1) {
+            await this.cacheManager.set(room, true);
+            this.emitRoomData(room, data);
+
+            setTimeout(() => {
+              initInterval(symbolList);
+            }, this.intervalTime);
+          }
         });
-        await this.cacheManager.set(room, true);
-        this.emitRoomData(room, data);
-      }, this.intervalTime + 1000);
+      }
+
+      initInterval(symbolList);
     }
 
     if (serviceId === 'vnstock') {
@@ -161,9 +172,25 @@ export class EventGateway {
     client: Socket,
     eventData: { serviceId: string },
   ) {
-    const room = eventData.serviceId;
+    if (eventData.serviceId === 'crypto') {
+      const room = eventData.serviceId;
+      client.leave(room);
+    }
 
-    client.leave(room);
+    if (eventData.serviceId === 'vnstock') {
+      const filePath = path.join(
+        process.cwd(),
+        './src/data/symbols/vnstock.json',
+      );
+      const configFile = fs.readFileSync(filePath, 'utf-8').toString();
+      const symbolList = JSON.parse(configFile);
+      this.resolutions.forEach((resolution: string) => {
+        symbolList.forEach((symbolCode: string) => {
+          const roomName = symbolCode + '_#_' + resolution;
+          client.leave(roomName);
+        });
+      });
+    }
   }
 
   initIntervalTimer(

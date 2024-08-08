@@ -69,7 +69,12 @@
   <script src="./public/socket.io.js"></script>
 
   <script>
-    const socket = io('http://localhost:3006', {
+    // const socket = io('https://wss.mindthegapstudio.com:1006', {
+    //   transports: ['websocket']
+    // });
+
+
+    const socket = io('http://127.0.0.1:3006', {
       transports: ['websocket']
     });
 
