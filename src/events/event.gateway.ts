@@ -7,11 +7,36 @@ import { Server, Socket } from 'socket.io';
 import { Inject, Logger } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import * as fs from 'fs';
+import * as path from 'path';
+type Tick = {
+  symbol: string;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  volume: number;
+  time: number;
+  datetime: Date;
+  resolution: string;
+};
 
 @WebSocketGateway(3006)
 export class EventGateway {
   @WebSocketServer() server: Server;
   private readonly cryptoExchanges = ['binance'];
+  private readonly resolutions = [
+    '1',
+    '5',
+    '10',
+    '15',
+    '30',
+    '60',
+    '240',
+    '1D',
+    '1W',
+    '1M',
+  ];
   private logger: Logger = new Logger('EventGateway');
   private readonly intervalTime: number = 1000;
   constructor(
@@ -70,6 +95,77 @@ export class EventGateway {
     client.leave(room);
   }
 
+  @SubscribeMessage('subscribe-service')
+  async handleSubscribeByService(
+    client: Socket,
+    eventData: {
+      serviceId: string;
+    },
+  ) {
+    const serviceId = eventData.serviceId ?? null;
+    const room = eventData.serviceId;
+
+    client.join(room);
+
+    const cachedData = await this.cacheManager.get(room);
+
+    if (cachedData) {
+      return;
+    }
+
+    if (serviceId === 'crypto') {
+      const filePath = path.join(
+        process.cwd(),
+        './src/data/symbols/crypto.json',
+      );
+      const configFile = fs.readFileSync(filePath, 'utf-8').toString();
+      const symbolList = JSON.parse(configFile);
+      setInterval(async () => {
+        const data = {};
+
+        this.resolutions.forEach(async (resolution: string) => {
+          const rawData =
+            await this.eventService.getSocketDataByResolution(resolution);
+          data[resolution] = [];
+
+          rawData.forEach(async (row: Tick) => {
+            if (symbolList.includes(row.symbol)) {
+              data[resolution].push(row);
+            }
+          });
+        });
+        await this.cacheManager.set(room, true);
+        this.emitRoomData(room, data);
+      }, this.intervalTime + 1000);
+    }
+
+    if (serviceId === 'vnstock') {
+      const filePath = path.join(
+        process.cwd(),
+        './src/data/symbols/vnstock.json',
+      );
+      const configFile = fs.readFileSync(filePath, 'utf-8').toString();
+      const symbolList = JSON.parse(configFile);
+      this.resolutions.forEach((resolution: string) => {
+        symbolList.forEach((symbolCode: string) => {
+          const roomName = symbolCode + '_#_' + resolution;
+
+          client.join(roomName);
+        });
+      });
+    }
+  }
+
+  @SubscribeMessage('unsubscribe-service')
+  async handleUnsubscribeBySerice(
+    client: Socket,
+    eventData: { serviceId: string },
+  ) {
+    const room = eventData.serviceId;
+
+    client.leave(room);
+  }
+
   initIntervalTimer(
     room: string,
     params: {
@@ -78,7 +174,7 @@ export class EventGateway {
     },
   ) {
     setInterval(async () => {
-      const data = await this.eventService.getSocketData(
+      const data = await this.eventService.getSocketDataBySymbol(
         params.symbolCode,
         params.resolution,
       );

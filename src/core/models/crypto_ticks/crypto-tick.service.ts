@@ -5,16 +5,47 @@ import * as moment from 'moment';
 export class CryptoTickService {
   constructor(private readonly cryptoTickRepository: CryptoTickRepository) {}
 
-  async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const barData = await this.getBarByResolution(symbolCode, resolution);
+  async getSocketDataBySymbol(
+    symbolCode: string,
+    resolution: string,
+  ): Promise<any> {
+    const barData = await this.getBarBySymbol(symbolCode, resolution);
 
     return barData;
   }
 
-  async getBarByResolution(
-    symbolCode: string,
-    resolution: string,
-  ): Promise<any> {
+  async getSocketDataByResolution(resolution: string): Promise<any> {
+    const { fromTime, time } = this.getTimePeriodByResolution(resolution);
+    const entityName = this.getEntityNameByResolution(resolution);
+    const ticks = await this.cryptoTickRepository.getDataByEntity(
+      fromTime,
+      entityName,
+    );
+
+    const mappingData = {};
+
+    ticks.forEach((tick: any) => {
+      if (!mappingData[tick.symbol]) {
+        mappingData[tick.symbol] = {
+          symbol: tick.symbol,
+          open: tick.open ?? 0,
+          close: tick.close ?? 0,
+          high: tick.high ?? 0,
+          low: tick.low ?? 0,
+          volume: tick.volume ?? 0,
+          time: parseInt(moment(time).format('X')) * 1000,
+          datetime: time,
+          resolution,
+        };
+      }
+    });
+
+    const data = Object.values(mappingData) ?? [];
+
+    return data;
+  }
+
+  async getBarBySymbol(symbolCode: string, resolution: string): Promise<any> {
     const { ticks, time } = await this.getTicks(symbolCode, resolution);
     const tickTotal = ticks.length;
 
@@ -49,7 +80,7 @@ export class CryptoTickService {
   async getTicks(symbolCode: string, resolution: string) {
     const { fromTime, time } = this.getTimePeriodByResolution(resolution);
     const entityName = this.getEntityNameByResolution(resolution);
-    const ticks = await this.cryptoTickRepository.getDataByEntity(
+    const ticks = await this.cryptoTickRepository.getDataBySymbol(
       symbolCode,
       fromTime,
       entityName,
@@ -135,7 +166,7 @@ export class CryptoTickService {
     if (resolution.includes('M')) {
       const time = moment();
       const period = parseInt(resolution[0]);
-      const beginMonth = Math.floor((time.months() + 1) / period) * period;
+      const beginMonth = Math.floor((time.month() + 1) / period) * period;
       const currentDate = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
       );

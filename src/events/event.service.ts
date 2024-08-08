@@ -4,7 +4,14 @@ import { CryptoTickService } from 'src/core/models/crypto_ticks/crypto-tick.serv
 export class EventService {
   constructor(private readonly cryptoTickService: CryptoTickService) {}
 
-  async getSocketData(symbolCode: string, resolution: string) {
-    return await this.cryptoTickService.getSocketData(symbolCode, resolution);
+  async getSocketDataBySymbol(symbolCode: string, resolution: string) {
+    return await this.cryptoTickService.getSocketDataBySymbol(
+      symbolCode,
+      resolution,
+    );
+  }
+
+  async getSocketDataByResolution(resolution: string) {
+    return await this.cryptoTickService.getSocketDataByResolution(resolution);
   }
 }
