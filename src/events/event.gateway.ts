@@ -145,7 +145,7 @@ export class EventGateway {
             }, this.intervalTime);
           }
         });
-      }
+      };
 
       initInterval(symbolList);
     }

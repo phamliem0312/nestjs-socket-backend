@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CryptoTickRepository } from './crypto-tick.repository';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import * as moment from 'moment';
 @Injectable()
 export class CryptoTickService {
-  constructor(private readonly cryptoTickRepository: CryptoTickRepository) {}
+  constructor(
+    private readonly cryptoTickRepository: CryptoTickRepository,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getSocketDataBySymbol(
     symbolCode: string,
@@ -23,10 +27,12 @@ export class CryptoTickService {
     );
 
     const mappingData = {};
+    const oldData = await this.cacheManager.get('mappingData');
+    const cacheData = {};
 
     ticks.forEach((tick: any) => {
-      if (!mappingData[tick.symbol]) {
-        mappingData[tick.symbol] = {
+      if (!cacheData[tick.symbol]) {
+        cacheData[tick.symbol] = {
           symbol: tick.symbol,
           open: tick.open ?? 0,
           close: tick.close ?? 0,
@@ -37,8 +43,14 @@ export class CryptoTickService {
           datetime: time,
           resolution,
         };
+
+        if (oldData[tick.symbol].volume !== cacheData[tick.symbol].volume) {
+          mappingData[tick.symbol] = cacheData[tick.symbol];
+        }
       }
     });
+
+    await this.cacheManager.set('mappingData', cacheData);
 
     const data = Object.values(mappingData) ?? [];
 
