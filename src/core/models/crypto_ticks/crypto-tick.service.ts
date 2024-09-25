@@ -45,6 +45,7 @@ export class CryptoTickService {
         };
 
         if (
+          !oldData ||
           !oldData[tick.symbol] ||
           oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
         ) {
