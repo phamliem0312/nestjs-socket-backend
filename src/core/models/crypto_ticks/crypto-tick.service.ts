@@ -44,7 +44,10 @@ export class CryptoTickService {
           resolution,
         };
 
-        if (oldData[tick.symbol].volume !== cacheData[tick.symbol].volume) {
+        if (
+          !oldData[tick.symbol] ||
+          oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
+        ) {
           mappingData[tick.symbol] = cacheData[tick.symbol];
         }
       }
