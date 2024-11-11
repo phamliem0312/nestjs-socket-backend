@@ -1,20 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CryptoTickRepository } from './crypto-tick.repository';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import * as moment from 'moment';
 @Injectable()
 export class CryptoTickService {
-  constructor(private readonly cryptoTickRepository: CryptoTickRepository) {}
+  constructor(
+    private readonly cryptoTickRepository: CryptoTickRepository,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
-  async getSocketData(symbolCode: string, resolution: string): Promise<any> {
-    const barData = await this.getBarByResolution(symbolCode, resolution);
+  async getSocketDataBySymbol(
+    symbolCode: string,
+    resolution: string,
+  ): Promise<any> {
+    const barData = await this.getBarBySymbol(symbolCode, resolution);
 
     return barData;
   }
 
-  async getBarByResolution(
-    symbolCode: string,
-    resolution: string,
-  ): Promise<any> {
+  async getSocketDataByResolution(resolution: string): Promise<any> {
+    const { fromTime, time } = this.getTimePeriodByResolution(resolution);
+    const entityName = this.getEntityNameByResolution(resolution);
+    const ticks = await this.cryptoTickRepository.getDataByEntity(
+      fromTime,
+      entityName,
+    );
+
+    const mappingData = {};
+    const oldData = await this.cacheManager.get('mappingData');
+    const cacheData = {};
+
+    ticks.forEach((tick: any) => {
+      if (!cacheData[tick.symbol]) {
+        cacheData[tick.symbol] = {
+          symbol: tick.symbol,
+          open: tick.open ?? 0,
+          close: tick.close ?? 0,
+          high: tick.high ?? 0,
+          low: tick.low ?? 0,
+          volume: tick.volume ?? 0,
+          time: parseInt(moment(time).format('X')) * 1000,
+          datetime: time,
+          resolution,
+        };
+
+        if (
+          !oldData ||
+          !oldData[tick.symbol] ||
+          oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
+        ) {
+          mappingData[tick.symbol] = cacheData[tick.symbol];
+        }
+      }
+    });
+
+    await this.cacheManager.set('mappingData', cacheData);
+
+    const data = Object.values(mappingData) ?? [];
+
+    return data;
+  }
+
+  async getBarBySymbol(symbolCode: string, resolution: string): Promise<any> {
     const { ticks, time } = await this.getTicks(symbolCode, resolution);
     const tickTotal = ticks.length;
 
@@ -49,7 +96,7 @@ export class CryptoTickService {
   async getTicks(symbolCode: string, resolution: string) {
     const { fromTime, time } = this.getTimePeriodByResolution(resolution);
     const entityName = this.getEntityNameByResolution(resolution);
-    const ticks = await this.cryptoTickRepository.getDataByEntity(
+    const ticks = await this.cryptoTickRepository.getDataBySymbol(
       symbolCode,
       fromTime,
       entityName,
@@ -135,7 +182,7 @@ export class CryptoTickService {
     if (resolution.includes('M')) {
       const time = moment();
       const period = parseInt(resolution[0]);
-      const beginMonth = Math.floor((time.months() + 1) / period) * period;
+      const beginMonth = Math.floor((time.month() + 1) / period) * period;
       const currentDate = time.format(
         `YYYY-${beginMonth < 10 ? '0' + beginMonth : beginMonth}-01 00:00:00`,
       );
