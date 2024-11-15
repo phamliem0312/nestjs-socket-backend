@@ -46,6 +46,8 @@ export class EventGateway {
 
   afterInit() {
     this.logger.log('Initialized');
+
+    this.initIntervalTimerForCommodity();
   }
 
   async handleConnection(client: Socket) {
@@ -210,6 +212,26 @@ export class EventGateway {
         return;
       }
       this.emitRoomData(room, data);
+    }, this.intervalTime);
+  }
+
+  initIntervalTimerForCommodity() {
+    setInterval(async () => {
+      const list = await this.eventService.getCommoditySocketData();
+
+      list.forEach(async (tick: any) => {
+        const room = tick.symbol + '_#_' + tick.resolution;
+
+        if (tick.open === 0) {
+          return;
+        }
+        const cachedData = await this.cacheManager.get(room);
+        if (cachedData && JSON.stringify(cachedData) === JSON.stringify(tick)) {
+          return;
+        }
+        this.cacheManager.set(room, tick);
+        this.emitRoomData(room, tick);
+      });
     }, this.intervalTime);
   }
 
