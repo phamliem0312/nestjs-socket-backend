@@ -167,6 +167,10 @@ export class EventGateway {
         });
       });
     }
+
+    if (serviceId === 'commodity') {
+      client.join('commodity');
+    }
   }
 
   @SubscribeMessage('unsubscribe-service')
@@ -175,6 +179,10 @@ export class EventGateway {
     eventData: { serviceId: string },
   ) {
     if (eventData.serviceId === 'crypto') {
+      const room = eventData.serviceId;
+      client.leave(room);
+    }
+    if (eventData.serviceId === 'commodity') {
       const room = eventData.serviceId;
       client.leave(room);
     }
@@ -218,8 +226,10 @@ export class EventGateway {
   initIntervalTimerForCommodity() {
     setInterval(async () => {
       const list = await this.eventService.getCommoditySocketData();
+      const total = list.length;
+      const array = [];
 
-      list.forEach(async (tick: any) => {
+      list.forEach(async (tick: any, i: number) => {
         const room = tick.symbol + '_#_' + tick.resolution;
 
         if (tick.open === 0) {
@@ -230,6 +240,13 @@ export class EventGateway {
           return;
         }
         this.cacheManager.set(room, tick);
+
+        array.push(tick);
+
+        if (i === total - 1) {
+          this.emitRoomData('commodity', array);
+        }
+
         this.emitRoomData(room, tick);
       });
     }, this.intervalTime);

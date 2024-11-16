@@ -79,8 +79,8 @@
     // });
 
     socket.on('connected', function (msg) {
-      //socket.emit('subscribe', { subscriberUID: "BTCUSDT_#_1D", exchange: "binance", symbol:"BTCUSDT", resolution: '1D' });
-      socket.emit('subscribe-service', { serviceId: "crypto"});
+      socket.emit('subscribe', { subscriberUID: "BTCUSD_#_1m", exchange: "binance", symbol:"BTCUSD", resolution: '1m' });
+      //socket.emit('subscribe-service', { serviceId: "crypto"});
     });
 
     socket.on('message', function (msg) {
