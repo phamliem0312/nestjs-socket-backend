@@ -53,7 +53,6 @@ export class CommodityRepository extends ModelRepository {
         'high',
         'low',
         'volume',
-        'date',
       )
       .from('commodity_m1s')
       .where('date', params[0])
@@ -70,7 +69,6 @@ export class CommodityRepository extends ModelRepository {
             'high',
             'low',
             'volume',
-            'date',
           )
           .from('commodity_h1s')
           .where('date', params[2])
@@ -86,7 +84,6 @@ export class CommodityRepository extends ModelRepository {
             'high',
             'low',
             'volume',
-            'date',
           )
           .from('commodity_h4s')
           .where('date', params[4])
@@ -102,14 +99,12 @@ export class CommodityRepository extends ModelRepository {
             'high',
             'low',
             'volume',
-            'date',
           )
           .from('commodity_d1s')
           .where('date', params[6])
           .whereNot('symbol', ''),
       )
-      .orderBy('symbol', 'asc')
-      .orderBy('date', 'desc');
+      .orderBy('symbol', 'asc');
 
     return result ? result : [];
   }
