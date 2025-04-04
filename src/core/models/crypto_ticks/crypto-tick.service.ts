@@ -21,6 +21,11 @@ export class CryptoTickService {
   async getSocketDataByResolution(resolution: string): Promise<any> {
     const { fromTime, time } = this.getTimePeriodByResolution(resolution);
     const entityName = this.getEntityNameByResolution(resolution);
+
+    if (!entityName) {
+      return [];
+    }
+
     const ticks = await this.cryptoTickRepository.getDataByEntity(
       fromTime,
       entityName,
@@ -45,8 +50,7 @@ export class CryptoTickService {
         };
 
         if (
-          !oldData ||
-          !oldData[tick.symbol] ||
+          !oldData?.[tick.symbol] ||
           oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
         ) {
           mappingData[tick.symbol] = cacheData[tick.symbol];
