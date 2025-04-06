@@ -121,22 +121,34 @@ export class EventGateway {
       const configFile = fs.readFileSync(filePath, 'utf-8').toString();
       const symbolList = JSON.parse(configFile);
 
+      const isValidJSON = (obj: any) => {
+        try {
+          JSON.stringify(obj);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      };
+
       const initInterval = (symbolList: Array<any>) => {
         const data = {};
         const max = this.resolutions.length;
+        let i = 0;
 
-        this.resolutions.forEach(async (resolution: string, i: number) => {
+        this.resolutions.forEach(async (resolution: string) => {
           const rawData =
             await this.eventService.getSocketDataByResolution(resolution);
           data[resolution] = [];
 
           rawData.forEach((row: Tick) => {
-            if (symbolList.includes(row.symbol)) {
+            if (symbolList.includes(row.symbol) && isValidJSON(row)) {
               data[resolution].push(row);
             }
           });
 
-          if (i === max - 1) {
+          i++;
+
+          if (i === max) {
             await this.cacheManager.set(room, true);
             this.emitRoomData(room, data);
 
