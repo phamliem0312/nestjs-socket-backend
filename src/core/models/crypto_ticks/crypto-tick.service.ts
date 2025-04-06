@@ -32,12 +32,15 @@ export class CryptoTickService {
     );
 
     const mappingData = {};
-    const oldData = await this.cacheManager.get('mappingData');
+    const oldData = await this.cacheManager.get(
+      'mappingData' + '-' + resolution,
+    );
     const cacheData = {};
 
     ticks.forEach((tick: any) => {
-      if (!cacheData[tick.symbol]) {
-        cacheData[tick.symbol] = {
+      const symbol = tick.symbol;
+      if (!cacheData[symbol]) {
+        cacheData[symbol] = {
           symbol: tick.symbol,
           open: tick.open ?? 0,
           close: tick.close ?? 0,
@@ -51,15 +54,15 @@ export class CryptoTickService {
 
         if (
           !oldData ||
-          !oldData[tick.symbol] ||
-          oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
+          !oldData[symbol] ||
+          oldData[symbol].volume !== cacheData[symbol].volume
         ) {
-          mappingData[tick.symbol] = cacheData[tick.symbol];
+          mappingData[symbol] = cacheData[symbol];
         }
       }
     });
 
-    await this.cacheManager.set('mappingData', cacheData);
+    await this.cacheManager.set('mappingData' + '-' + resolution, cacheData);
 
     const data = Object.values(mappingData) ?? [];
 
