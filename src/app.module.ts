@@ -6,6 +6,7 @@ import { VnIntradayModule } from './core/models/vn_intradays/vn-intraday.module'
 import { VnStockTickModule } from './core/models/vn_stock_ticks/vn-stock-tick.module';
 import { CryptoTickModule } from './core/models/crypto_ticks/crypto-tick.module';
 import { EventModule } from './events/event.module';
+import { CommodityModule } from './core/models/commodities/commodity.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { KnexModule } from 'nest-knexjs';
@@ -24,6 +25,7 @@ import config from './core/databases/config';
     VnIntradayModule,
     VnStockTickModule,
     CryptoTickModule,
+    CommodityModule,
     CacheModule.register({
       isGlobal: true,
     }),
