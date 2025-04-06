@@ -6,7 +6,7 @@ import * as moment from 'moment';
 export class CryptoTickService {
   constructor(
     private readonly cryptoTickRepository: CryptoTickRepository,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async getSocketDataBySymbol(
@@ -50,7 +50,8 @@ export class CryptoTickService {
         };
 
         if (
-          !oldData?.[tick.symbol] ||
+          !oldData ||
+          !oldData[tick.symbol] ||
           oldData[tick.symbol].volume !== cacheData[tick.symbol].volume
         ) {
           mappingData[tick.symbol] = cacheData[tick.symbol];
