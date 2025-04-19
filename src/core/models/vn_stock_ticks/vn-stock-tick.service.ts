@@ -43,6 +43,8 @@ export class VnStockTickService {
     const low = data.low;
     const volume = data.volume;
 
+    this.eventGateway.emitRoomData('vnstock', data);
+
     this.resolutions.forEach((resolution) => {
       const { time } = this.getTimePeriodByResolution(resolution);
       const datetime = time;

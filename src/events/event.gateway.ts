@@ -165,19 +165,8 @@ export class EventGateway {
     }
 
     if (serviceId === 'vnstock') {
-      const filePath = path.join(
-        process.cwd(),
-        './src/data/symbols/vnstock.json',
-      );
-      const configFile = fs.readFileSync(filePath, 'utf-8').toString();
-      const symbolList = JSON.parse(configFile);
-      this.resolutions.forEach((resolution: string) => {
-        symbolList.forEach((symbolCode: string) => {
-          const roomName = symbolCode + '_#_' + resolution;
-
-          client.join(roomName);
-        });
-      });
+      const roomName = 'vnstock';
+      client.join(roomName);
     }
 
     if (serviceId === 'commodity') {
@@ -200,18 +189,8 @@ export class EventGateway {
     }
 
     if (eventData.serviceId === 'vnstock') {
-      const filePath = path.join(
-        process.cwd(),
-        './src/data/symbols/vnstock.json',
-      );
-      const configFile = fs.readFileSync(filePath, 'utf-8').toString();
-      const symbolList = JSON.parse(configFile);
-      this.resolutions.forEach((resolution: string) => {
-        symbolList.forEach((symbolCode: string) => {
-          const roomName = symbolCode + '_#_' + resolution;
-          client.leave(roomName);
-        });
-      });
+      const room = eventData.serviceId;
+      client.leave(room);
     }
   }
 
